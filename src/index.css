@@ -1,0 +1,186 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Background gradients - Light gray/blue for app background */
+    --background: 240 100% 98%; /* #F2F6FA equivalent */
+    --foreground: 225 15% 20%; /* #333333 equivalent for dark gray body text */
+
+    /* Card/Panel gradients - Clean white with subtle light tones */
+    --card: 0 0% 100%; /* #ffffff */
+    --card-foreground: 225 15% 20%; /* #333333 */
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 225 15% 20%;
+
+    /* Primary gradient - Deep blue for headers/buttons */
+    --primary: 219 54% 32%; /* #1E3C72 equivalent */
+    --primary-variant: 219 45% 40%; /* #2A5298 equivalent */
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary - Light background variations */
+    --secondary: 220 100% 96%;
+    --secondary-foreground: 219 54% 32%;
+
+    /* Muted colors - Muted gray for secondary text */
+    --muted: 220 100% 96%;
+    --muted-foreground: 220 9% 60%; /* #7A8A9E equivalent */
+
+    /* Accent gradient - Aqua/teal for highlights */
+    --accent: 195 100% 42%; /* #00B4DB equivalent */
+    --accent-variant: 195 100% 35%; /* #0083B0 equivalent */
+    --accent-foreground: 0 0% 100%;
+
+    /* Success/Earnings - Green to blue gradient */
+    --success: 156 46% 52%; /* #43CEA2 equivalent */
+    --success-variant: 219 69% 36%; /* #185A9D equivalent */
+    --success-foreground: 0 0% 100%;
+
+    /* Warning colors */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    /* Destructive/Expense - Red gradient */
+    --destructive: 4 83% 59%; /* #EF473A equivalent */
+    --destructive-variant: 354 66% 50%; /* #CB2D3E equivalent */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 100% 92%;
+    --input: 220 100% 92%;
+    --ring: 219 54% 32%;
+
+    /* Modern gradient system */
+    --gradient-primary: linear-gradient(135deg, hsl(219 54% 32%), hsl(219 45% 40%));
+    --gradient-accent: linear-gradient(135deg, hsl(195 100% 42%), hsl(195 100% 35%));
+    --gradient-background: linear-gradient(180deg, hsl(240 100% 98%), hsl(220 100% 94%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(240 100% 98%));
+    --gradient-success: linear-gradient(135deg, hsl(156 46% 52%), hsl(219 69% 36%));
+    --gradient-destructive: linear-gradient(135deg, hsl(4 83% 59%), hsl(354 66% 50%));
+    
+    /* Modern shadows */
+    --shadow-soft: 0 4px 20px -2px hsl(219 54% 32% / 0.15);
+    --shadow-card: 0 2px 10px -2px hsl(220 9% 60% / 0.08);
+    --shadow-primary: 0 8px 30px -8px hsl(219 54% 32% / 0.3);
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 219 30% 8%;
+    --foreground: 0 0% 95%;
+
+    --card: 219 30% 10%;
+    --card-foreground: 0 0% 95%;
+
+    --popover: 219 30% 10%;
+    --popover-foreground: 0 0% 95%;
+
+    --primary: 195 100% 42%;
+    --primary-variant: 195 100% 35%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 219 30% 15%;
+    --secondary-foreground: 0 0% 95%;
+
+    --muted: 219 30% 15%;
+    --muted-foreground: 220 9% 60%;
+
+    --accent: 219 54% 32%;
+    --accent-variant: 219 45% 40%;
+    --accent-foreground: 0 0% 100%;
+
+    --success: 156 46% 52%;
+    --success-variant: 219 69% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --destructive: 4 83% 59%;
+    --destructive-variant: 354 66% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 219 30% 20%;
+    --input: 219 30% 20%;
+    --ring: 195 100% 42%;
+
+    /* Dark mode gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(219 54% 32%), hsl(219 45% 40%));
+    --gradient-accent: linear-gradient(135deg, hsl(195 100% 42%), hsl(195 100% 35%));
+    --gradient-background: linear-gradient(180deg, hsl(219 30% 8%), hsl(219 30% 12%));
+    --gradient-card: linear-gradient(145deg, hsl(219 30% 10%), hsl(219 30% 12%));
+    --gradient-success: linear-gradient(135deg, hsl(156 46% 52%), hsl(219 69% 36%));
+    --gradient-destructive: linear-gradient(135deg, hsl(4 83% 59%), hsl(354 66% 50%));
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-gradient-background text-foreground;
+    font-family: 'Inter', 'SF Pro Display', 'Roboto', system-ui, -apple-system, sans-serif;
+    /* Better mobile experience */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  /* Typography hierarchy */
+  h1, h2, h3, h4, h5, h6 {
+    color: hsl(var(--primary));
+    font-weight: 700;
+  }
+  
+  .text-body {
+    color: hsl(var(--foreground));
+  }
+  
+  .text-secondary {
+    color: hsl(var(--muted-foreground));
+  }
+  
+  /* Improve mobile scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Better mobile input experience */
+  input, select, textarea {
+    @apply text-base; /* Prevents zoom on iOS */
+  }
+  
+  @media (max-width: 640px) {
+    input, select, textarea {
+      font-size: 16px; /* Prevents zoom on iOS */
+    }
+  }
+}
