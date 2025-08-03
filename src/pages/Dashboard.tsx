@@ -337,6 +337,12 @@ const Dashboard = () => {
                     </Pie>
                     <Tooltip />
                   </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        </GradientCard>
+      </div>
       <MobileNavigation />
     </div>
   );
