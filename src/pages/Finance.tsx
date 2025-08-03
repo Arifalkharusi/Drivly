@@ -606,20 +606,20 @@ const Finance = () => {
               ) : (
                 <div className="space-y-4">
                   {platformFilteredEarnings.map((earning) => (
-                    <GradientCard key={earning.id} className="hover:shadow-soft transition-shadow p-4 sm:p-6">
-                      <div className="space-y-4">
+                    <GradientCard key={earning.id} className="hover:shadow-soft transition-shadow p-3 sm:p-4">
+                      <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
                               earning.platform === "Uber" ? "bg-gradient-to-br from-black to-gray-800 text-white" :
                               earning.platform === "Bolt" ? "bg-gradient-to-br from-green-500 to-green-600 text-white" :
                               earning.platform === "Lyft" ? "bg-gradient-to-br from-pink-500 to-pink-600 text-white" :
                               "bg-gradient-to-br from-primary to-primary/80 text-white"
                             }`}>
-                              {getPlatformIcon(earning.platform)}
+                              <div className="w-4 h-4">{getPlatformIcon(earning.platform)}</div>
                             </div>
                             <div>
-                              <h3 className="font-bold text-base text-primary">{earning.platform}</h3>
+                              <h3 className="font-semibold text-sm text-primary">{earning.platform}</h3>
                               <p className="text-xs text-muted-foreground flex items-center gap-1">
                                 <CalendarIcon className="w-3 h-3" />
                                 {new Date(earning.date).toLocaleDateString()}
@@ -632,7 +632,7 @@ const Finance = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => openEarningsEditDialog(earning)}
-                              className="h-10 w-10 p-0 hover:bg-muted/50 rounded-xl"
+                              className="h-8 w-8 p-0 hover:bg-muted/50 rounded-lg"
                             >
                               <Edit3 className="w-4 h-4" />
                             </Button>
@@ -643,16 +643,16 @@ const Finance = () => {
                                 setEarningToDelete(earning.id);
                                 setIsEarningsDeleteDialogOpen(true);
                               }}
-                              className="h-10 w-10 p-0 text-muted-foreground hover:text-destructive rounded-xl"
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive rounded-lg"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </div>
 
-                        <div className="bg-muted/20 rounded-2xl p-4">
+                        <div className="bg-muted/20 rounded-xl p-3">
                           <div className="flex items-baseline justify-between mb-2">
-                            <span className="text-2xl font-bold text-success">£{earning.amount.toFixed(2)}</span>
+                            <span className="text-xl font-bold text-success">£{earning.amount.toFixed(2)}</span>
                             <div className="text-right">
                               <div className="flex items-center gap-1 text-xs text-success">
                                 <TrendingUp className="w-3 h-3" />
@@ -662,18 +662,18 @@ const Finance = () => {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-3">
-                          <div className="bg-success/5 border border-success/10 rounded-xl p-3 text-center">
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="bg-success/5 border border-success/10 rounded-lg p-2 text-center">
                             <div className="text-xs text-muted-foreground mb-1">Trips</div>
-                            <div className="font-bold text-base text-success">{earning.trips}</div>
+                            <div className="font-bold text-sm text-success">{earning.trips}</div>
                           </div>
-                          <div className="bg-accent/5 border border-accent/10 rounded-xl p-3 text-center">
+                          <div className="bg-accent/5 border border-accent/10 rounded-lg p-2 text-center">
                             <div className="text-xs text-muted-foreground mb-1">Hours</div>
-                            <div className="font-bold text-base text-accent">{earning.hours}h</div>
+                            <div className="font-bold text-sm text-accent">{earning.hours}h</div>
                           </div>
-                          <div className="bg-primary/5 border border-primary/10 rounded-xl p-3 text-center">
+                          <div className="bg-primary/5 border border-primary/10 rounded-lg p-2 text-center">
                             <div className="text-xs text-muted-foreground mb-1">Per Trip</div>
-                            <div className="font-bold text-base text-primary">£{(earning.amount / earning.trips).toFixed(2)}</div>
+                            <div className="font-bold text-sm text-primary">£{(earning.amount / earning.trips).toFixed(2)}</div>
                           </div>
                         </div>
                       </div>
@@ -907,20 +907,20 @@ const Finance = () => {
               ) : (
                 <div className="space-y-4">
                   {filteredExpenses.map((expense) => (
-                    <GradientCard key={expense.id} className="hover:shadow-elegant transition-all duration-300 p-4 sm:p-6">
-                      <div className="space-y-4">
+                    <GradientCard key={expense.id} className="hover:shadow-elegant transition-all duration-300 p-3 sm:p-4">
+                      <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
                               expense.category === "Fuel" ? "bg-gradient-to-br from-destructive to-destructive/80 text-white" :
                               expense.category === "Maintenance" ? "bg-gradient-to-br from-warning to-warning/80 text-white" :
                               expense.category === "Mileage" ? "bg-gradient-to-br from-accent to-accent/80 text-white" :
                               "bg-gradient-to-br from-muted to-muted/80 text-muted-foreground"
                             }`}>
-                              {getCategoryIcon(expense.category)}
+                              <div className="w-4 h-4">{getCategoryIcon(expense.category)}</div>
                             </div>
                             <div>
-                              <h3 className="font-bold text-base text-primary">{expense.category}</h3>
+                              <h3 className="font-semibold text-sm text-primary">{expense.category}</h3>
                               <p className="text-xs text-muted-foreground flex items-center gap-1">
                                 <Receipt className="w-3 h-3" />
                                 {expense.date.toLocaleDateString()}
@@ -933,7 +933,7 @@ const Finance = () => {
                               variant="ghost"
                               size="sm"
                               onClick={() => openExpensesEditDialog(expense)}
-                              className="h-10 w-10 p-0 hover:bg-muted/50 rounded-xl"
+                              className="h-8 w-8 p-0 hover:bg-muted/50 rounded-lg"
                             >
                               <Edit3 className="w-4 h-4" />
                             </Button>
@@ -944,16 +944,16 @@ const Finance = () => {
                                 setExpenseToDelete(expense.id);
                                 setIsExpensesDeleteDialogOpen(true);
                               }}
-                              className="h-10 w-10 p-0 text-muted-foreground hover:text-destructive rounded-xl"
+                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive rounded-lg"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
                         </div>
 
-                        <div className="bg-muted/20 rounded-2xl p-4">
+                        <div className="bg-muted/20 rounded-xl p-3">
                           <div className="flex items-baseline justify-between mb-2">
-                            <span className="text-2xl font-bold text-destructive">-£{expense.amount.toFixed(2)}</span>
+                            <span className="text-xl font-bold text-destructive">-£{expense.amount.toFixed(2)}</span>
                             <div className="text-right">
                               {expense.type === "mileage" && (
                                 <span className="text-xs text-accent font-medium">Auto-calculated</span>
@@ -964,14 +964,14 @@ const Finance = () => {
                         </div>
 
                         {expense.type === "mileage" && expense.miles && expense.costPerMile && (
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-accent/5 border border-accent/10 rounded-xl p-3 text-center">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="bg-accent/5 border border-accent/10 rounded-lg p-2 text-center">
                               <div className="text-xs text-muted-foreground mb-1">Miles</div>
-                              <div className="font-bold text-base text-accent">{expense.miles}</div>
+                              <div className="font-bold text-sm text-accent">{expense.miles}</div>
                             </div>
-                            <div className="bg-muted/30 rounded-xl p-3 text-center">
+                            <div className="bg-muted/30 rounded-lg p-2 text-center">
                               <div className="text-xs text-muted-foreground mb-1">Rate/Mile</div>
-                              <div className="font-bold text-base">£{expense.costPerMile?.toFixed(3)}</div>
+                              <div className="font-bold text-sm">£{expense.costPerMile?.toFixed(3)}</div>
                             </div>
                           </div>
                         )}
