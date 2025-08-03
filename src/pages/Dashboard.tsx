@@ -1,5 +1,6 @@
 import { useDataStore } from "@/hooks/useDataStore";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import GradientCard from "@/components/GradientCard";
 import MobileNavigation from "@/components/MobileNavigation";
 import { TrendingUp, TrendingDown, Target, DollarSign, BarChart3, Activity } from "lucide-react";
@@ -30,78 +31,125 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-background pb-20">
-      {/* Header */}
-      <div className="bg-gradient-primary text-white p-4 sm:p-6 pb-6 sm:pb-8">
-        <div className="flex justify-between items-start sm:items-center mb-4 sm:mb-6">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold text-white truncate">Analytics Dashboard</h1>
-            <p className="text-white/90 text-sm sm:text-base mt-1">Track your performance insights</p>
+      {/* Modern Header with Glass Effect */}
+      <div className="relative bg-gradient-primary text-white overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)`,
+            backgroundSize: '20px 20px'
+          }} />
+        </div>
+        
+        <div className="relative p-4 sm:p-6 pb-6 sm:pb-8">
+          <div className="flex justify-between items-start sm:items-center mb-6">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-accent rounded-2xl flex items-center justify-center shadow-lg">
+                    <BarChart3 className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-success rounded-full animate-pulse" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white">Analytics Dashboard</h1>
+                  <p className="text-white/80 text-sm flex items-center gap-1">
+                    <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
+                    Real-time insights
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center ml-3 flex-shrink-0">
-            <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6" />
+
+          {/* Modern Overview Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            {/* Weekly Net Income */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-white/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/15 transition-all duration-300">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-white" />
+                  </div>
+                  <Badge className="bg-blue-500/20 text-blue-100 border-blue-400/30 text-xs">
+                    +12.4%
+                  </Badge>
+                </div>
+                <p className="text-white/80 text-sm mb-1">Weekly Net</p>
+                <p className="text-2xl font-bold text-white">£{netIncome.toFixed(2)}</p>
+                <div className="w-full h-1 bg-white/20 rounded-full mt-3 overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full w-4/5 animate-pulse" />
+                </div>
+              </div>
+            </div>
+
+            {/* Total Trips */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/15 transition-all duration-300">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center">
+                    <Activity className="w-5 h-5 text-white" />
+                  </div>
+                  <Badge className="bg-green-500/20 text-green-100 border-green-400/30 text-xs">
+                    +8.7%
+                  </Badge>
+                </div>
+                <p className="text-white/80 text-sm mb-1">Total Trips</p>
+                <p className="text-2xl font-bold text-white">{totalTrips}</p>
+                <div className="w-full h-1 bg-white/20 rounded-full mt-3 overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-green-400 to-emerald-600 rounded-full w-3/4 animate-pulse" />
+                </div>
+              </div>
+            </div>
+
+            {/* Hours Worked */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/15 transition-all duration-300">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-600 rounded-xl flex items-center justify-center">
+                    <DollarSign className="w-5 h-5 text-white" />
+                  </div>
+                  <Badge className="bg-purple-500/20 text-purple-100 border-purple-400/30 text-xs">
+                    +15.2%
+                  </Badge>
+                </div>
+                <p className="text-white/80 text-sm mb-1">Hours Worked</p>
+                <p className="text-2xl font-bold text-white">{totalHours.toFixed(1)}h</p>
+                <div className="w-full h-1 bg-white/20 rounded-full mt-3 overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-purple-400 to-pink-600 rounded-full w-2/3 animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Performance Summary Bar */}
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
+            <div className="grid grid-cols-4 gap-4 text-center">
+              <div>
+                <p className="text-white/60 text-xs mb-1">Weekly Earnings</p>
+                <p className="text-lg font-bold text-white">£{weeklyEarnings.toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-white/60 text-xs mb-1">Avg/Day</p>
+                <p className="text-lg font-bold text-white">£{(weeklyEarnings / 7).toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-white/60 text-xs mb-1">Per Hour</p>
+                <p className="text-lg font-bold text-white">£{weeklyHourlyRate.toFixed(2)}</p>
+              </div>
+              <div>
+                <p className="text-white/60 text-xs mb-1">Target Progress</p>
+                <p className="text-lg font-bold text-success">{progressPercentage.toFixed(1)}%</p>
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* This Week's Summary */}
-        <GradientCard variant="card" className="bg-white/10 backdrop-blur-sm border-white/20">
-          <div className="flex justify-between items-start sm:items-center mb-4 sm:mb-6">
-            <div className="flex-1 min-w-0">
-              <h2 className="text-lg sm:text-xl font-bold text-white">This Week's Performance</h2>
-              <p className="text-white/70 text-xs sm:text-sm mt-1">
-                Monday - {new Date().toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  month: 'short', 
-                  day: 'numeric' 
-                })}
-              </p>
-            </div>
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-2xl flex items-center justify-center ml-3 flex-shrink-0">
-              <PoundSterling className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
-            <div className="bg-white/10 rounded-xl p-3 sm:p-4">
-              <div className="flex items-center gap-2 sm:gap-3 mb-2">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-success/20 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-success" />
-                </div>
-                <span className="text-white/80 text-xs sm:text-sm font-medium">Weekly Net</span>
-              </div>
-              <p className="text-xl sm:text-2xl font-bold text-white">${netIncome.toFixed(2)}</p>
-              <p className="text-success text-xs">+12% vs last week</p>
-            </div>
-            
-            <div className="bg-white/10 rounded-xl p-3 sm:p-4">
-              <div className="flex items-center gap-2 sm:gap-3 mb-2">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary/20 rounded-lg flex items-center justify-center">
-                  <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" />
-                </div>
-                <span className="text-white/80 text-xs sm:text-sm font-medium">Total Trips</span>
-              </div>
-              <p className="text-xl sm:text-2xl font-bold text-white">{totalTrips}</p>
-              <p className="text-white/60 text-xs">{totalHours.toFixed(1)} hours active</p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            <div className="text-center">
-              <p className="text-white/60 text-xs mb-1">Earnings</p>
-              <p className="text-sm sm:text-lg font-semibold text-white">£{weeklyProgress.toFixed(2)}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-white/60 text-xs mb-1">Avg/Day</p>
-              <p className="text-sm sm:text-lg font-semibold text-white">£{(weeklyProgress / 7).toFixed(2)}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-white/60 text-xs mb-1">Per Hour</p>
-              <p className="text-sm sm:text-lg font-semibold text-white">£{weeklyHourlyRate.toFixed(2)}/h</p>
-            </div>
-          </div>
-        </GradientCard>
       </div>
 
-      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 mt-4 sm:mt-6">{/* Removed date filter - everything measures this week */}
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 mt-4 sm:mt-6">
         {/* Weekly Target Progress */}
         <GradientCard>
           <div className="space-y-3 sm:space-y-4">
