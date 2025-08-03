@@ -21,6 +21,7 @@ import {
   Clock,
   ChevronDown,
   Loader2,
+  CalendarDays,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -66,15 +67,17 @@ const CityInfo = () => {
   const [transportData, setTransportData] = useState<{
     trains: CityEvent[];
     buses: CityEvent[];
+    events: CityEvent[];
   }>({
     trains: [],
     buses: [],
+    events: [],
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
   // Fetch transport data (trains/buses)
-  const fetchTransportData = async (type: "train" | "bus") => {
+  const fetchTransportData = async (type: "train" | "bus" | "event") => {
     try {
       setLoading(true);
       
@@ -148,6 +151,49 @@ const CityInfo = () => {
         setTransportData(prev => ({ ...prev, buses: mockBuses }));
       }
       
+      // Mock data for events
+      if (type === "event") {
+        const mockEvents: CityEvent[] = [
+          {
+            id: "event-1",
+            title: `${searchCity} Symphony Orchestra`,
+            type: "event",
+            time: "19:30",
+            location: `${searchCity} Symphony Hall`,
+            details: "Classical Concert",
+            passengers: 2100,
+          },
+          {
+            id: "event-2",
+            title: "Premier League Match",
+            type: "event",
+            time: "15:00",
+            location: `${searchCity} Stadium`,
+            details: "Football Match",
+            passengers: 42000,
+          },
+          {
+            id: "event-3",
+            title: "Tech Conference 2024",
+            type: "event",
+            time: "09:00",
+            location: `${searchCity} Convention Centre`,
+            details: "Technology Summit",
+            passengers: 5000,
+          },
+          {
+            id: "event-4",
+            title: "West End Musical",
+            type: "event",
+            time: "20:00",
+            location: `${searchCity} Theatre Royal`,
+            details: "Musical Performance",
+            passengers: 1800,
+          },
+        ];
+        
+        setTransportData(prev => ({ ...prev, events: mockEvents }));
+      }
     } catch (error) {
       console.error(`${type} API error:`, error);
       toast({
@@ -246,6 +292,8 @@ const CityInfo = () => {
       fetchTransportData("train");
     } else if (activeTab === "buses") {
       fetchTransportData("bus");
+    } else if (activeTab === "events") {
+      fetchTransportData("event");
     }
   }, [activeTab, searchCity]);
 
@@ -257,6 +305,8 @@ const CityInfo = () => {
         return <Train className="w-4 h-4" />;
       case "bus":
         return <Bus className="w-4 h-4" />;
+      case "event":
+        return <CalendarDays className="w-4 h-4" />;
       default:
         return <MapPin className="w-4 h-4" />;
     }
@@ -270,6 +320,8 @@ const CityInfo = () => {
         return "bg-green-100 text-green-800";
       case "bus":
         return "bg-orange-100 text-orange-800";
+      case "event":
+        return "bg-purple-100 text-purple-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -314,6 +366,21 @@ const CityInfo = () => {
         type: bus.type,
         title: bus.title,
         details: bus.details,
+      })),
+      isTransport: false,
+    },
+    {
+      id: "events",
+      label: "Events",
+      icon: CalendarDays,
+      data: transportData.events.map((event) => ({
+        hour: event.time,
+        count: 1,
+        locations: [event.location],
+        totalPassengers: event.passengers || 0,
+        type: event.type,
+        title: event.title,
+        details: event.details,
       })),
       isTransport: false,
     },
@@ -362,7 +429,7 @@ const CityInfo = () => {
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 mt-4 sm:mt-6">
 
         {/* Modern Tab Selectors */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
+        <div className="grid grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
           {tabData.map((tab) => (
             <button
               key={tab.id}
