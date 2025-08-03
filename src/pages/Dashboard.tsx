@@ -127,200 +127,309 @@ const Dashboard = () => {
         </div>
       </div>
 
-      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 mt-4 sm:mt-6">
-        {/* Weekly Target Progress */}
-        <GradientCard>
-          <div className="space-y-3 sm:space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-base sm:text-lg text-primary">Weekly Target</h3>
-              <Target className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-            </div>
+      <div className="p-4 sm:p-6 space-y-6 mt-6">
+        {/* Modern Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Left Column - Main Charts */}
+          <div className="lg:col-span-2 space-y-6">
             
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs sm:text-sm">
-                <span className="text-muted-foreground">Progress</span>
-                <span className="font-medium">£{weeklyProgress} / £{weeklyTarget}</span>
+            {/* Weekly Target Progress - Enhanced */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+              <div className="relative bg-gradient-card backdrop-blur-sm border border-white/20 rounded-3xl p-6 hover:shadow-elegant transition-all duration-300">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-lg">
+                      <Target className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-xl text-primary">Weekly Target</h3>
+                      <p className="text-sm text-muted-foreground">Track your progress</p>
+                    </div>
+                  </div>
+                  <Badge className="bg-primary/10 text-primary border-primary/20 px-3 py-1">
+                    {progressPercentage.toFixed(1)}%
+                  </Badge>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="flex justify-between items-end">
+                    <div>
+                      <p className="text-3xl font-bold text-primary">£{weeklyProgress.toFixed(2)}</p>
+                      <p className="text-muted-foreground">of £{weeklyTarget} target</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-semibold text-muted-foreground">£{(weeklyTarget - weeklyProgress).toFixed(2)}</p>
+                      <p className="text-sm text-muted-foreground">remaining</p>
+                    </div>
+                  </div>
+                  
+                  <div className="relative">
+                    <Progress value={progressPercentage} className="h-4 bg-muted/30" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-full" />
+                  </div>
+                </div>
               </div>
-              <Progress value={progressPercentage} className="h-2.5 sm:h-3" />
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                {progressPercentage.toFixed(1)}% complete • £{weeklyTarget - weeklyProgress} to go
-              </p>
             </div>
-          </div>
-        </GradientCard>
 
-        {/* Weekly Earnings vs Expenses Chart */}
-        <GradientCard>
-          <div className="space-y-3 sm:space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-base sm:text-lg text-primary">Weekly Overview</h3>
-              <Activity className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+            {/* Weekly Overview Chart - Enhanced */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-success/10 to-destructive/10 rounded-3xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+              <div className="relative bg-gradient-card backdrop-blur-sm border border-white/20 rounded-3xl p-6 hover:shadow-elegant transition-all duration-300">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-accent rounded-2xl flex items-center justify-center shadow-lg">
+                      <Activity className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-xl text-primary">Weekly Performance</h3>
+                      <p className="text-sm text-muted-foreground">Earnings vs Expenses</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Badge className="bg-success/10 text-success border-success/20">
+                      Earnings
+                    </Badge>
+                    <Badge className="bg-destructive/10 text-destructive border-destructive/20">
+                      Expenses
+                    </Badge>
+                  </div>
+                </div>
+                
+                <div className="h-64 md:h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={weeklyData}>
+                      <defs>
+                        <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#43CEA2" stopOpacity={0.4}/>
+                          <stop offset="95%" stopColor="#43CEA2" stopOpacity={0.1}/>
+                        </linearGradient>
+                        <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#EF473A" stopOpacity={0.4}/>
+                          <stop offset="95%" stopColor="#EF473A" stopOpacity={0.1}/>
+                        </linearGradient>
+                      </defs>
+                      <XAxis 
+                        dataKey="day" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                        interval={0}
+                      />
+                      <YAxis 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                        width={50}
+                      />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--card))',
+                          border: 'none',
+                          borderRadius: '16px',
+                          boxShadow: 'var(--shadow-card)',
+                          fontSize: '14px',
+                          color: 'hsl(var(--card-foreground))'
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="earnings"
+                        stroke="#43CEA2"
+                        strokeWidth={3}
+                        fillOpacity={1}
+                        fill="url(#colorEarnings)"
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="expenses"
+                        stroke="#EF473A"
+                        strokeWidth={3}
+                        fillOpacity={1}
+                        fill="url(#colorExpenses)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
             </div>
+
+          </div>
+
+          {/* Right Column - Stats & Insights */}
+          <div className="space-y-6">
             
-            <div className="h-40 sm:h-48 md:h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={weeklyData}>
-                  <defs>
-                    <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#43CEA2" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#43CEA2" stopOpacity={0}/>
-                    </linearGradient>
-                    <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#EF473A" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#EF473A" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis 
-                    dataKey="day" 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                    interval={0}
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                    width={35}
-                  />
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: 'none',
-                      borderRadius: '12px',
-                      boxShadow: 'var(--shadow-card)',
-                      fontSize: '12px',
-                      color: 'hsl(var(--card-foreground))'
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="earnings"
-                    stroke="#43CEA2"
-                    strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#colorEarnings)"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="expenses"
-                    stroke="#EF473A"
-                    strokeWidth={2}
-                    fillOpacity={1}
-                    fill="url(#colorExpenses)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </GradientCard>
-
-        {/* Peak Hours This Week */}
-        <GradientCard>
-          <div className="space-y-3 sm:space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-base sm:text-lg text-primary">Daily Hours This Week</h3>
-              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-            </div>
-            
-            <div className="h-32 sm:h-40 md:h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dailyHoursData}>
-                  <XAxis 
-                    dataKey="day" 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
-                    interval={0}
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                    width={30}
-                  />
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: 'none',
-                      borderRadius: '12px',
-                      boxShadow: 'var(--shadow-card)',
-                      fontSize: '12px',
-                      color: 'hsl(var(--card-foreground))'
-                    }}
-                    formatter={(value, name) => [
-                      name === 'hours' ? `${value}h` : `$${value}`,
-                      name === 'hours' ? 'Hours Worked' : 'Earnings'
-                    ]}
-                  />
-                  <Bar 
-                    dataKey="hours" 
-                    fill="#00B4DB" 
-                    radius={[4, 4, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </GradientCard>
-
-        {/* Stats Cards and Expense Breakdown */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <GradientCard className="bg-gradient-secondary">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
-                <span className="text-xs sm:text-sm font-medium">This Week</span>
+            {/* Quick Stats Cards */}
+            <div className="grid grid-cols-1 gap-4">
+              
+              {/* Today's Performance */}
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-cyan-500/20 rounded-2xl blur-lg group-hover:blur-xl transition-all duration-300" />
+                <div className="relative bg-gradient-card backdrop-blur-sm border border-white/20 rounded-2xl p-5 hover:shadow-soft transition-all duration-300">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center">
+                      <TrendingUp className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-primary">Today's Net</h4>
+                      <p className="text-xs text-muted-foreground">Current performance</p>
+                    </div>
+                  </div>
+                  <p className="text-2xl font-bold text-primary">£{(todayEarnings - todayExpenses).toFixed(2)}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge className="bg-success/10 text-success text-xs">+12%</Badge>
+                    <span className="text-xs text-muted-foreground">vs yesterday</span>
+                  </div>
+                </div>
               </div>
-              <p className="text-xl sm:text-2xl font-bold">${weeklyProgress}</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">+12% vs last week</p>
-            </div>
-          </GradientCard>
 
-          <GradientCard className="bg-gradient-secondary">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5 text-warning" />
-                <span className="text-xs sm:text-sm font-medium">Expenses</span>
+              {/* Hourly Rate */}
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-emerald-500/20 rounded-2xl blur-lg group-hover:blur-xl transition-all duration-300" />
+                <div className="relative bg-gradient-card backdrop-blur-sm border border-white/20 rounded-2xl p-5 hover:shadow-soft transition-all duration-300">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+                      <PoundSterling className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-primary">Hourly Rate</h4>
+                      <p className="text-xs text-muted-foreground">Weekly average</p>
+                    </div>
+                  </div>
+                  <p className="text-2xl font-bold text-primary">£{weeklyHourlyRate.toFixed(2)}</p>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge className="bg-success/10 text-success text-xs">+8%</Badge>
+                    <span className="text-xs text-muted-foreground">vs last week</span>
+                  </div>
+                </div>
               </div>
-              <p className="text-xl sm:text-2xl font-bold">£{weeklyExpenses.toFixed(2)}</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">-8% vs last week</p>
+
             </div>
-          </GradientCard>
+
+            {/* Daily Hours Chart */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-2xl blur-lg group-hover:blur-xl transition-all duration-300" />
+              <div className="relative bg-gradient-card backdrop-blur-sm border border-white/20 rounded-2xl p-5 hover:shadow-soft transition-all duration-300">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                    <BarChart3 className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-primary">Daily Hours</h4>
+                    <p className="text-xs text-muted-foreground">This week</p>
+                  </div>
+                </div>
+                
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={dailyHoursData}>
+                      <XAxis 
+                        dataKey="day" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                        interval={0}
+                      />
+                      <YAxis 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                        width={25}
+                      />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--card))',
+                          border: 'none',
+                          borderRadius: '12px',
+                          boxShadow: 'var(--shadow-card)',
+                          fontSize: '12px',
+                          color: 'hsl(var(--card-foreground))'
+                        }}
+                        formatter={(value, name) => [
+                          name === 'hours' ? `${value}h` : `£${value}`,
+                          name === 'hours' ? 'Hours Worked' : 'Earnings'
+                        ]}
+                      />
+                      <Bar 
+                        dataKey="hours" 
+                        fill="url(#barGradient)" 
+                        radius={[6, 6, 0, 0]}
+                      />
+                      <defs>
+                        <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#00B4DB" />
+                          <stop offset="100%" stopColor="#0083B0" />
+                        </linearGradient>
+                      </defs>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* Expense Breakdown */}
+            {expenseBreakdown.length > 0 && (
+              <div className="relative group">
+                <div className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-red-500/20 rounded-2xl blur-lg group-hover:blur-xl transition-all duration-300" />
+                <div className="relative bg-gradient-card backdrop-blur-sm border border-white/20 rounded-2xl p-5 hover:shadow-soft transition-all duration-300">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
+                      <TrendingDown className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-primary">Expenses</h4>
+                      <p className="text-xs text-muted-foreground">Weekly breakdown</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="h-32 w-32">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={expenseBreakdown}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={25}
+                            outerRadius={60}
+                            paddingAngle={2}
+                            dataKey="value"
+                          >
+                            {expenseBreakdown.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {expenseBreakdown.map((item, index) => (
+                      <div key={item.name} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                          />
+                          <span className="text-sm text-muted-foreground">{item.name}</span>
+                        </div>
+                        <span className="text-sm font-medium">£{item.value.toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </div>
         </div>
-
-        {/* Weekly Expense Breakdown */}
-        <GradientCard>
-          <div className="space-y-3 sm:space-y-4">
-            <h3 className="font-semibold text-base sm:text-lg text-primary">Weekly Expense Breakdown</h3>
-            
-            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <div className="h-32 w-32 sm:h-40 sm:w-40 mx-auto sm:mx-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={expenseBreakdown}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={30}
-                      outerRadius={55}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {expenseBreakdown.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
-        </GradientCard>
       </div>
+      
       <MobileNavigation />
     </div>
   );
