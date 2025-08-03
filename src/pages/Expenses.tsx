@@ -475,7 +475,7 @@ const Expenses = () => {
                           </span>
                         </div>
                         <p className="text-2xl font-bold text-primary">
-                          $
+                          £
                           {(
                             parseFloat(newExpense.miles) *
                             parseFloat(newExpense.costPerMile)

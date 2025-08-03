@@ -511,7 +511,7 @@ const Earnings = () => {
                           {platform}
                         </Badge>
                         <span className="text-xs sm:text-sm text-muted-foreground">
-                          £{platformTotal.toFixed(2)} total
+                          ${platformTotal.toFixed(2)} total
                         </span>
                       </div>
                       <div className="flex items-center gap-3 sm:gap-4 text-xs text-muted-foreground">
@@ -626,7 +626,7 @@ const Earnings = () => {
                                   Per Trip
                                 </div>
                                 <div className="font-bold text-base text-primary">
-                                  ${(earning.amount / earning.trips).toFixed(2)}
+                                  £{(earning.amount / earning.trips).toFixed(2)}
                                 </div>
                               </div>
                             </div>
