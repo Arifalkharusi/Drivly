@@ -337,28 +337,6 @@ const Dashboard = () => {
                     </Pie>
                     <Tooltip />
                   </PieChart>
-                </ResponsiveContainer>
-              </div>
-              
-              <div className="flex-1 space-y-2 sm:ml-4">
-                {expenseBreakdown.map((item, index) => (
-                  <div key={item.name} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: item.color }}
-                      />
-                      <span className="text-xs sm:text-sm">{item.name}</span>
-                    </div>
-                    <span className="text-xs sm:text-sm font-medium">£{item.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </GradientCard>
-      </div>
-
       <MobileNavigation />
     </div>
   );

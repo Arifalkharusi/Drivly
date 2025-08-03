@@ -513,37 +513,6 @@ const Targets = () => {
                 placeholder="0.00"
                 value={editAmount}
                 onChange={(e) => setEditAmount(e.target.value)}
-                className="rounded-xl h-12 text-base"
-              />
-            </div>
-
-            <div className="bg-muted/20 rounded-xl p-4">
-              <h4 className="font-medium mb-2">Current Progress</h4>
-              <p className="text-sm text-muted-foreground">
-                You've earned £{editingTarget ? getActualEarnings(editingTarget.type).toFixed(2) : '0.00'} towards your {editingTarget?.type} target
-              </p>
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button 
-                variant="outline" 
-                onClick={() => setIsEditDialogOpen(false)}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleSaveTarget}
-                className="flex-1"
-                disabled={!editAmount}
-              >
-                Update Target
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <MobileNavigation />
     </div>
   );

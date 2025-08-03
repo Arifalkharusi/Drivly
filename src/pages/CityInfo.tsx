@@ -706,28 +706,6 @@ const CityInfo = () => {
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 passengers
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Details */}
-                          <div className="space-y-2">
-                            <div className="flex items-center gap-2 text-sm">
-                              <MapPin className="w-4 h-4 text-muted-foreground" />
-                              <span>{item.locations[0]}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </GradientCard>
-                    ))
-                  )}
-                </div>
-              )}
-            </TabsContent>
-          ))}
-        </Tabs>
-      </div>
-
       <MobileNavigation />
     </div>
   );

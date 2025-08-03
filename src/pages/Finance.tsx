@@ -927,28 +927,6 @@ const Finance = () => {
                     className="rounded-xl h-12 text-base"
                   />
                 </div>
-              </div>
-            )}
-
-            <div className="flex gap-3 pt-4">
-              <Button 
-                variant="outline" 
-                onClick={resetExpenseForm}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleAddExpense}
-                className="flex-1"
-              >
-                {editingExpense ? "Update" : "Add"} Expense
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <MobileNavigation />
     </div>
   );
