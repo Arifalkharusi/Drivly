@@ -66,7 +66,6 @@ const Expenses = () => {
     customCategory: "",
     description: "",
     miles: "",
-    costPerMile: "0.545", // Standard IRS rate
     costPerMile: "0.45", // Standard HMRC rate
   });
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
