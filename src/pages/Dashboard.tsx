@@ -124,28 +124,6 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
-
-          {/* Performance Summary Bar */}
-          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
-            <div className="grid grid-cols-4 gap-4 text-center">
-              <div>
-                <p className="text-white/60 text-xs mb-1">Weekly Earnings</p>
-                <p className="text-lg font-bold text-white">£{weeklyEarnings.toFixed(2)}</p>
-              </div>
-              <div>
-                <p className="text-white/60 text-xs mb-1">Avg/Day</p>
-                <p className="text-lg font-bold text-white">£{(weeklyEarnings / 7).toFixed(2)}</p>
-              </div>
-              <div>
-                <p className="text-white/60 text-xs mb-1">Per Hour</p>
-                <p className="text-lg font-bold text-white">£{weeklyHourlyRate.toFixed(2)}</p>
-              </div>
-              <div>
-                <p className="text-white/60 text-xs mb-1">Target Progress</p>
-                <p className="text-lg font-bold text-success">{progressPercentage.toFixed(1)}%</p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 

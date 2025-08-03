@@ -317,37 +317,6 @@ const Targets = () => {
               </div>
             </div>
           </div>
-          
-          {/* Performance Summary Bar */}
-          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
-            <div className="grid grid-cols-4 gap-4 text-center">
-              <div>
-                <p className="text-white/60 text-xs mb-1">Weekly Target</p>
-                <p className="text-lg font-bold text-white">£1,200</p>
-              </div>
-              <div>
-                <p className="text-white/60 text-xs mb-1">Daily Target</p>
-                <p className="text-lg font-bold text-white">£200</p>
-              </div>
-              <div>
-                <p className="text-white/60 text-xs mb-1">Success Rate</p>
-                <p className="text-lg font-bold text-success">
-                  {enabledTargets.length > 0 ? Math.round((completedTargets.length / enabledTargets.length) * 100) : 0}%
-                </p>
-              </div>
-              <div>
-                <p className="text-white/60 text-xs mb-1">Avg Progress</p>
-                <p className="text-lg font-bold text-white">
-                  {enabledTargets.length > 0 
-                    ? Math.round(enabledTargets.reduce((sum, target) => {
-                        const current = getActualEarnings(target.type);
-                        return sum + getProgressPercentage(current, target.amount);
-                      }, 0) / enabledTargets.length)
-                    : 0}%
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 

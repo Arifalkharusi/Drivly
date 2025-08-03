@@ -354,28 +354,6 @@ const Finance = () => {
               </div>
             </div>
           </div>
-
-          {/* Quick Stats Bar */}
-          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
-            <div className="grid grid-cols-4 gap-4 text-center">
-              <div>
-                <p className="text-white/60 text-xs mb-1">Total Trips</p>
-                <p className="text-lg font-bold text-white">156</p>
-              </div>
-              <div>
-                <p className="text-white/60 text-xs mb-1">Hours</p>
-                <p className="text-lg font-bold text-white">89.5h</p>
-              </div>
-              <div>
-                <p className="text-white/60 text-xs mb-1">Avg/Hour</p>
-                <p className="text-lg font-bold text-white">£{(weeklyEarnings / 89.5).toFixed(2)}</p>
-              </div>
-              <div>
-                <p className="text-white/60 text-xs mb-1">Net Income</p>
-                <p className="text-lg font-bold text-success">£{netIncome.toFixed(2)}</p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 

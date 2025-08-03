@@ -491,28 +491,6 @@ const CityInfo = () => {
               </div>
             </div>
           </div>
-
-          {/* Transport Summary Bar */}
-          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
-            <div className="grid grid-cols-4 gap-4 text-center">
-              <div>
-                <p className="text-white/60 text-xs mb-1">Flights Today</p>
-                <p className="text-lg font-bold text-white">12</p>
-              </div>
-              <div>
-                <p className="text-white/60 text-xs mb-1">Train Services</p>
-                <p className="text-lg font-bold text-white">8</p>
-              </div>
-              <div>
-                <p className="text-white/60 text-xs mb-1">Bus Routes</p>
-                <p className="text-lg font-bold text-white">15</p>
-              </div>
-              <div>
-                <p className="text-white/60 text-xs mb-1">Events</p>
-                <p className="text-lg font-bold text-success">6</p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
