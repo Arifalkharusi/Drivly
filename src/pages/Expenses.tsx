@@ -345,7 +345,7 @@ const Expenses = () => {
                     {newExpense.category === "custom" && (
                       <div className="space-y-3">
                         <Label
-                          htmlFor="customCategory"
+                          Amount (£)
                           className="text-sm font-medium"
                         >
                           Custom Category Name
@@ -364,7 +364,7 @@ const Expenses = () => {
                         />
                       </div>
                     )}
-
+                          Standard HMRC rate: £0.45/mile
                     <div className="space-y-3">
                       <Label htmlFor="date" className="text-sm font-medium">
                         Date
@@ -446,7 +446,7 @@ const Expenses = () => {
                         htmlFor="costPerMile"
                         className="text-sm font-medium"
                       >
-                        Cost per Mile ($)
+                        Cost per Mile (£)
                       </Label>
                       <Input
                         id="costPerMile"
@@ -462,7 +462,7 @@ const Expenses = () => {
                         className="rounded-xl h-12 text-base"
                       />
                       <p className="text-xs text-muted-foreground">
-                        Standard IRS rate: $0.545/mile
+                        Standard HMRC rate: £0.45/mile
                       </p>
                     </div>
 
@@ -475,7 +475,7 @@ const Expenses = () => {
                           </span>
                         </div>
                         <p className="text-2xl font-bold text-primary">
-                          $
+                          £
                           {(
                             parseFloat(newExpense.miles) *
                             parseFloat(newExpense.costPerMile)
