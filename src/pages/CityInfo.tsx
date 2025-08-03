@@ -22,7 +22,6 @@ import {
   ChevronDown,
   Loader2,
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
 interface CityEvent {
   id: string;
@@ -49,58 +48,41 @@ const CityInfo = () => {
   const cityConfig = {
     Birmingham: {
       iata: "BHX",
-      railHub: "Birmingham New Street",
-      coachStation: "Birmingham Coach Station",
       airportName: "Birmingham Airport",
     },
     Manchester: {
       iata: "MAN",
-      railHub: "Manchester Piccadilly",
-      coachStation: "Manchester Coach Station",
       airportName: "Manchester Airport",
     },
     Liverpool: {
       iata: "LPL",
-      railHub: "Liverpool Lime Street",
-      coachStation: "Liverpool One Bus Station",
       airportName: "Liverpool John Lennon Airport",
     },
   };
 
   const [activeTab, setActiveTab] = useState("flights");
-  const [loading, setLoading] = useState(false);
   const [arrivals, setArrivals] = useState<any[]>([]);
   
-  const [transportData, setTransportData] = useState<
-    Record<string, CityEvent[]>
-  >({
-    flights: [],
-    trains: [],
-    buses: [],
-    events: [],
-  });
-  const { toast } = useToast();
-
-  // Helper function for API calls
-  const getCurrentAndFutureTime = () => {
-    const now = new Date();
-    const future = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours later
-    
-    const formatDate = (date: Date) => {
-      return date.toISOString().split('T')[0];
-    };
-    
-    return {
-      current: formatDate(now),
-      future: formatDate(future)
-    };
-  };
 
   // Fetch flight arrivals data
   useEffect(() => {
     const fetchArrivals = async (city: string) => {
       const config = cityConfig[city as keyof typeof cityConfig];
       if (!config) return;
+      
+      const getCurrentAndFutureTime = () => {
+        const now = new Date();
+        const future = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+        
+        const formatDate = (date: Date) => {
+          return date.toISOString().split('T')[0];
+        };
+        
+        return {
+          current: formatDate(now),
+          future: formatDate(future)
+        };
+      };
       
       const headers = {
         "X-RapidAPI-Key": "8301f8c387msh12139157bfaee9bp116ab6jsn0633ba721fa9",
@@ -162,182 +144,11 @@ const CityInfo = () => {
 
   const cities = Object.keys(cityConfig);
 
-  // Keep the original Supabase edge function calls for other transport data
-  const fetchTransportData = async (city: string) => {
-    setLoading(true);
-    console.log(`Fetching real transport data for ${city} via Supabase...`);
-
-    try {
-      const config = cityConfig[city as keyof typeof cityConfig];
-      if (!config) {
-        throw new Error(`Configuration not found for ${city}`);
-      }
-
-      const today = new Date().toISOString().split("T")[0];
-      const currentTime = new Date()
-        .toLocaleTimeString("en-GB", { hour12: false })
-        .substring(0, 5);
-
-      // Fetch train data via Supabase edge function
-      let trainData = { trains: [] };
-      try {
-        console.log(`Fetching trains from ${config.railHub}...`);
-        // Mock train data since Supabase is not available
-        trainData = {
-          trains: [
-            {
-              id: "train-1",
-              title: `${config.railHub} to London Euston`,
-              type: "train",
-              time: "08:30",
-              location: config.railHub,
-              details: "Direct service to London",
-              passengers: 400,
-            },
-            {
-              id: "train-2", 
-              title: `${config.railHub} to London Euston`,
-              type: "train",
-              time: "09:15",
-              location: config.railHub,
-              details: "Express service",
-              passengers: 350,
-            },
-          ]
-        };
-        console.log(`Found ${trainData.trains.length} trains`);
-      } catch (error) {
-        console.error("Train API error:", error);
-      }
-
-      // Fetch bus data via Supabase edge function
-      let busData = { buses: [] };
-      try {
-        console.log(`Fetching buses from ${config.coachStation}...`);
-        // Mock bus data since Supabase is not available
-        busData = {
-          buses: [
-            {
-              id: "bus-1",
-              title: `${config.coachStation} to London Victoria`,
-              type: "bus",
-              time: "07:45",
-              location: config.coachStation,
-              details: "National Express service",
-              passengers: 50,
-            },
-            {
-              id: "bus-2",
-              title: `${config.coachStation} to London Victoria`,
-              type: "bus", 
-              time: "10:30",
-              location: config.coachStation,
-              details: "Megabus service",
-              passengers: 45,
-            },
-          ]
-        };
-        console.log(`Found ${busData.buses.length} buses`);
-      } catch (error) {
-        console.error("Bus API error:", error);
-      }
-
-      // Events data
-      const eventsData = {
-        events: [
-          {
-            id: "event-1",
-            title:
-              city === "Birmingham"
-                ? "Birmingham Symphony Hall Concert"
-                : city === "Manchester"
-                ? "Manchester Arena Event"
-                : "Liverpool Philharmonic Concert",
-            type: "event" as const,
-            time: "19:30",
-            location:
-              city === "Birmingham"
-                ? "Symphony Hall Birmingham"
-                : city === "Manchester"
-                ? "AO Arena Manchester"
-                : "Liverpool Philharmonic Hall",
-            details: "Evening performance - expect high footfall",
-            passengers: city === "Manchester" ? 21000 : 2000,
-          },
-          {
-            id: "event-2",
-            title: `${city} Business Conference`,
-            type: "event" as const,
-            time: "09:00",
-            location: `${city} International Convention Centre`,
-            details: "Major business networking event",
-            passengers: 1500,
-          },
-        ],
-      };
-
-      setTransportData({
-        flights: [], // Flight data comes from the direct API call above
-        trains: trainData.trains || [],
-        buses: busData.buses || [],
-        events: eventsData.events || [],
-      });
-
-      const hasRealData =
-        trainData.trains.length > 0 ||
-        busData.buses.length > 0;
-
-      toast({
-        title: hasRealData
-          ? "Live transport data loaded"
-          : "No live data available",
-        description: hasRealData
-          ? `Real API data for ${city}`
-          : `No live transport data found for ${city}`,
-        variant: hasRealData ? "default" : "destructive",
-      });
-
-      console.log("Final transport data:", {
-        flights: flightData?.length || 0,
-        trains: trainData.trains?.length || 0,
-        buses: busData.buses?.length || 0,
-        events: eventsData.events?.length || 0,
-        usingRealData: hasRealData,
-      });
-    } catch (error) {
-      console.error("Error fetching transport data:", error);
-
-      setTransportData({
-        flights: [],
-        trains: [],
-        buses: [],
-        events: [],
-      });
-
-      toast({
-        title: "Failed to load live data",
-        description: "Unable to fetch live transport data from APIs",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTransportData(searchCity);
-  }, [searchCity]);
 
   const getIcon = (type: string) => {
     switch (type) {
       case "flight":
         return <Plane className="w-4 h-4" />;
-      case "train":
-        return <Train className="w-4 h-4" />;
-      case "bus":
-        return <Bus className="w-4 h-4" />;
-      case "event":
-        return <Calendar className="w-4 h-4" />;
       default:
         return <MapPin className="w-4 h-4" />;
     }
@@ -347,12 +158,6 @@ const CityInfo = () => {
     switch (type) {
       case "flight":
         return "bg-blue-100 text-blue-800";
-      case "train":
-        return "bg-green-100 text-green-800";
-      case "bus":
-        return "bg-yellow-100 text-yellow-800";
-      case "event":
-        return "bg-purple-100 text-purple-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -369,27 +174,6 @@ const CityInfo = () => {
       icon: Plane,
       data: flightData,
       isTransport: true,
-    },
-    {
-      id: "trains",
-      label: "Trains",
-      icon: Train,
-      data: transportData.trains,
-      isTransport: true,
-    },
-    {
-      id: "buses",
-      label: "Buses",
-      icon: Bus,
-      data: transportData.buses,
-      isTransport: true,
-    },
-    {
-      id: "events",
-      label: "Events",
-      icon: Calendar,
-      data: transportData.events,
-      isTransport: false,
     },
   ];
 
@@ -434,18 +218,9 @@ const CityInfo = () => {
       </div>
 
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 mt-4 sm:mt-6">
-        {/* Loading indicator */}
-        {loading && (
-          <div className="flex items-center justify-center p-8">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            <span className="ml-2 text-muted-foreground">
-              Loading transport data...
-            </span>
-          </div>
-        )}
 
         {/* Modern Tab Selectors */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-6">
+        <div className="grid grid-cols-1 gap-2 sm:gap-3 mb-4 sm:mb-6">
           {tabData.map((tab) => (
             <button
               key={tab.id}
@@ -512,9 +287,8 @@ const CityInfo = () => {
                 </GradientCard>
               ) : (
                 <div className="space-y-3">
-                  {tab.isTransport
-                    ? // Hourly grouped view for transport
-                      tab.data.map((hourlyData, index) => (
+                  {/* Hourly grouped view for flights */}
+                  {tab.data.map((hourlyData, index) => (
                         <GradientCard
                           key={index}
                           className="hover:shadow-soft transition-shadow"
@@ -582,50 +356,6 @@ const CityInfo = () => {
                                   ))}
                                 </div>
                               )}
-                            </div>
-                          </div>
-                        </GradientCard>
-                      ))
-                    : // Individual view for events
-                      tab.data.map((item) => (
-                        <GradientCard
-                          key={item.id}
-                          className="hover:shadow-soft transition-shadow"
-                        >
-                          <div className="space-y-3">
-                            {/* Header */}
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <Badge className={getTypeColor(item.type)}>
-                                    {getIcon(item.type)}
-                                    <span className="ml-1 capitalize">
-                                      {item.type}
-                                    </span>
-                                  </Badge>
-                                </div>
-                                <h3 className="font-semibold text-lg">
-                                  {item.title}
-                                </h3>
-                                <p className="text-sm text-muted-foreground">
-                                  {item.details}
-                                </p>
-                              </div>
-
-                              <div className="text-right">
-                                <div className="flex items-center gap-1 text-sm font-medium">
-                                  <Clock className="w-4 h-4" />
-                                  {formatTime(item.time)}
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Location and Details */}
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 text-sm">
-                                <MapPin className="w-4 h-4 text-muted-foreground" />
-                                <span>{item.location}</span>
-                              </div>
                             </div>
                           </div>
                         </GradientCard>
