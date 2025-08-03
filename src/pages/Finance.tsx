@@ -420,12 +420,13 @@ const Finance = () => {
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {dateRange?.from ? (
                     dateRange.to ? (
-                  {categoryFilteredExpenses.length === 0 && selectedCategory !== "all" ? (
+                      <>
                         {format(dateRange.from, "MMM dd")} - {format(dateRange.to, "MMM dd, y")}
                       </>
-                      <h3 className="font-semibold mb-2 text-primary">No expenses for {selectedCategory}</h3>
-                      <p className="text-muted-foreground mb-4">No expenses found for {selectedCategory} in the selected date range</p>
+                    ) : (
+                      format(dateRange.from, "PPP")
                     )
+                  ) : (
                     <span>Pick a date range</span>
                   )}
                 </Button>
@@ -897,7 +898,13 @@ const Finance = () => {
                 </div>
               </div>
 
-              {filteredExpenses.length === 0 ? (
+              {categoryFilteredExpenses.length === 0 && selectedCategory !== "all" ? (
+                <GradientCard className="text-center py-8">
+                  <Receipt className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="font-semibold mb-2 text-primary">No expenses for {selectedCategory}</h3>
+                  <p className="text-muted-foreground mb-4">No expenses found for {selectedCategory} in the selected date range</p>
+                </GradientCard>
+              ) : filteredExpenses.length === 0 ? (
                 <GradientCard className="text-center py-8">
                   <Receipt className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="font-semibold mb-2 text-primary">No expenses recorded</h3>
