@@ -430,7 +430,7 @@ const CityInfo = () => {
           </div>
 
           {/* Modern Overview Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 gap-4 mb-6">
             {/* Current Location */}
             <div className="relative group">
               <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-white/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
@@ -447,46 +447,6 @@ const CityInfo = () => {
                 <p className="text-2xl font-bold text-white">{searchCity}</p>
                 <div className="w-full h-1 bg-white/20 rounded-full mt-3 overflow-hidden">
                   <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full w-full animate-pulse" />
-                </div>
-              </div>
-            </div>
-
-            {/* Active Transports */}
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
-              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/15 transition-all duration-300">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center">
-                    <Activity className="w-5 h-5 text-white" />
-                  </div>
-                  <Badge className="bg-green-500/20 text-green-100 border-green-400/30 text-xs">
-                    +15.2%
-                  </Badge>
-                </div>
-                <p className="text-white/80 text-sm mb-1">Active Routes</p>
-                <p className="text-2xl font-bold text-white">24</p>
-                <div className="w-full h-1 bg-white/20 rounded-full mt-3 overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-green-400 to-emerald-600 rounded-full w-4/5 animate-pulse" />
-                </div>
-              </div>
-            </div>
-
-            {/* Peak Hours */}
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
-              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/15 transition-all duration-300">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-600 rounded-xl flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-white" />
-                  </div>
-                  <Badge className="bg-purple-500/20 text-purple-100 border-purple-400/30 text-xs">
-                    Peak
-                  </Badge>
-                </div>
-                <p className="text-white/80 text-sm mb-1">Peak Hours</p>
-                <p className="text-2xl font-bold text-white">9-11 AM</p>
-                <div className="w-full h-1 bg-white/20 rounded-full mt-3 overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-purple-400 to-pink-600 rounded-full w-3/4 animate-pulse" />
                 </div>
               </div>
             </div>
