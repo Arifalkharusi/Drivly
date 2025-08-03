@@ -22,6 +22,7 @@ import {
   ChevronDown,
   Loader2,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface CityEvent {
   id: string;
@@ -62,7 +63,102 @@ const CityInfo = () => {
 
   const [activeTab, setActiveTab] = useState("flights");
   const [arrivals, setArrivals] = useState<any[]>([]);
-  
+  const [transportData, setTransportData] = useState<{
+    trains: CityEvent[];
+    buses: CityEvent[];
+  }>({
+    trains: [],
+    buses: [],
+  });
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  // Fetch transport data (trains/buses)
+  const fetchTransportData = async (type: "train" | "bus") => {
+    try {
+      setLoading(true);
+      
+      // Mock data for trains
+      if (type === "train") {
+        const mockTrains: CityEvent[] = [
+          {
+            id: "train-1",
+            title: "Virgin Trains - London Euston",
+            type: "train",
+            time: "09:15",
+            location: `${searchCity} New Street`,
+            details: "Platform 4",
+            passengers: 180,
+          },
+          {
+            id: "train-2", 
+            title: "CrossCountry - Edinburgh",
+            type: "train",
+            time: "10:30",
+            location: `${searchCity} New Street`,
+            details: "Platform 7",
+            passengers: 220,
+          },
+          {
+            id: "train-3",
+            title: "West Midlands Railway - Worcester",
+            type: "train", 
+            time: "11:45",
+            location: `${searchCity} New Street`,
+            details: "Platform 2",
+            passengers: 95,
+          },
+        ];
+        
+        setTransportData(prev => ({ ...prev, trains: mockTrains }));
+      }
+      
+      // Mock data for buses
+      if (type === "bus") {
+        const mockBuses: CityEvent[] = [
+          {
+            id: "bus-1",
+            title: "National Express - London Victoria",
+            type: "bus",
+            time: "08:30",
+            location: `${searchCity} Coach Station`,
+            details: "Bay 12",
+            passengers: 45,
+          },
+          {
+            id: "bus-2",
+            title: "Megabus - Manchester",
+            type: "bus", 
+            time: "12:15",
+            location: `${searchCity} Coach Station`,
+            details: "Bay 8",
+            passengers: 38,
+          },
+          {
+            id: "bus-3",
+            title: "FlixBus - Liverpool",
+            type: "bus",
+            time: "15:20", 
+            location: `${searchCity} Coach Station`,
+            details: "Bay 5",
+            passengers: 52,
+          },
+        ];
+        
+        setTransportData(prev => ({ ...prev, buses: mockBuses }));
+      }
+      
+    } catch (error) {
+      console.error(`${type} API error:`, error);
+      toast({
+        title: "Error",
+        description: `Failed to fetch ${type} data`,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Fetch flight arrivals data
   useEffect(() => {
@@ -144,11 +240,23 @@ const CityInfo = () => {
 
   const cities = Object.keys(cityConfig);
 
+  // Fetch transport data when tab changes
+  useEffect(() => {
+    if (activeTab === "trains") {
+      fetchTransportData("train");
+    } else if (activeTab === "buses") {
+      fetchTransportData("bus");
+    }
+  }, [activeTab, searchCity]);
 
   const getIcon = (type: string) => {
     switch (type) {
       case "flight":
         return <Plane className="w-4 h-4" />;
+      case "train":
+        return <Train className="w-4 h-4" />;
+      case "bus":
+        return <Bus className="w-4 h-4" />;
       default:
         return <MapPin className="w-4 h-4" />;
     }
@@ -158,6 +266,10 @@ const CityInfo = () => {
     switch (type) {
       case "flight":
         return "bg-blue-100 text-blue-800";
+      case "train":
+        return "bg-green-100 text-green-800";
+      case "bus":
+        return "bg-orange-100 text-orange-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -174,6 +286,36 @@ const CityInfo = () => {
       icon: Plane,
       data: flightData,
       isTransport: true,
+    },
+    {
+      id: "trains",
+      label: "Trains",
+      icon: Train,
+      data: transportData.trains.map((train) => ({
+        hour: train.time,
+        count: 1,
+        locations: [train.location],
+        totalPassengers: train.passengers || 0,
+        type: train.type,
+        title: train.title,
+        details: train.details,
+      })),
+      isTransport: false,
+    },
+    {
+      id: "buses",
+      label: "Buses",
+      icon: Bus,
+      data: transportData.buses.map((bus) => ({
+        hour: bus.time,
+        count: 1,
+        locations: [bus.location],
+        totalPassengers: bus.passengers || 0,
+        type: bus.type,
+        title: bus.title,
+        details: bus.details,
+      })),
+      isTransport: false,
     },
   ];
 
@@ -220,7 +362,7 @@ const CityInfo = () => {
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 mt-4 sm:mt-6">
 
         {/* Modern Tab Selectors */}
-        <div className="grid grid-cols-1 gap-2 sm:gap-3 mb-4 sm:mb-6">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
           {tabData.map((tab) => (
             <button
               key={tab.id}
@@ -274,7 +416,14 @@ const CityInfo = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {tabData.map((tab) => (
             <TabsContent key={tab.id} value={tab.id} className="space-y-4">
-              {tab.data.length === 0 ? (
+              {loading && activeTab === tab.id ? (
+                <GradientCard className="text-center py-8">
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+                  <p className="text-muted-foreground">
+                    Loading {tab.label.toLowerCase()}...
+                  </p>
+                </GradientCard>
+              ) : tab.data.length === 0 ? (
                 <GradientCard className="text-center py-8">
                   <tab.icon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="font-semibold mb-2 text-primary">
@@ -287,79 +436,134 @@ const CityInfo = () => {
                 </GradientCard>
               ) : (
                 <div className="space-y-3">
-                  {/* Hourly grouped view for flights */}
-                  {tab.data.map((hourlyData, index) => (
-                        <GradientCard
-                          key={index}
-                          className="hover:shadow-soft transition-shadow"
-                        >
-                          <div className="space-y-3">
-                            {/* Header */}
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <Badge
-                                    className={getTypeColor(tab.id)}
-                                  >
-                                    {getIcon(tab.id)}
-                                    <span className="ml-1 capitalize">
-                                      {tab.label}
-                                    </span>
-                                  </Badge>
-                                  <Badge variant="outline" className="text-xs">
-                                    {hourlyData.count}{" "}
-                                    {hourlyData.count === 1
-                                      ? "arrival"
-                                      : "arrivals"}
-                                  </Badge>
-                                </div>
-                                <h3 className="font-semibold text-lg">
-                                  {hourlyData.hour}
-                                </h3>
-                                <p className="text-sm text-muted-foreground">
-                                  {hourlyData.count} {tab.label.toLowerCase()}{" "}
-                                  arriving this hour
-                                </p>
+                  {tab.isTransport ? (
+                    // Hourly grouped view for flights
+                    tab.data.map((hourlyData, index) => (
+                      <GradientCard
+                        key={index}
+                        className="hover:shadow-soft transition-shadow"
+                      >
+                        <div className="space-y-3">
+                          {/* Header */}
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge
+                                  className={getTypeColor(tab.id)}
+                                >
+                                  {getIcon(tab.id)}
+                                  <span className="ml-1 capitalize">
+                                    {tab.label}
+                                  </span>
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {hourlyData.count}{" "}
+                                  {hourlyData.count === 1
+                                    ? "arrival"
+                                    : "arrivals"}
+                                </Badge>
                               </div>
-
-                              <div className="text-right">
-                                <div className="flex items-center gap-1 text-sm font-medium mb-1">
-                                  <Clock className="w-4 h-4" />
-                                  {hourlyData.hour}
-                                </div>
-                                <p className="text-2xl font-bold text-primary">
-                                  {hourlyData.count}
-                                </p>
-                              </div>
+                              <h3 className="font-semibold text-lg">
+                                {hourlyData.hour}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {hourlyData.count} {tab.label.toLowerCase()}{" "}
+                                arriving this hour
+                              </p>
                             </div>
 
-                            {/* Details */}
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2 text-sm">
-                                <MapPin className="w-4 h-4 text-muted-foreground" />
-                                <span>
-                                  {hourlyData.locations.length === 1
-                                    ? hourlyData.locations[0]
-                                    : `${hourlyData.locations.length} locations`}
-                                </span>
+                            <div className="text-right">
+                              <div className="flex items-center gap-1 text-sm font-medium mb-1">
+                                <Clock className="w-4 h-4" />
+                                {hourlyData.hour}
                               </div>
-                              {hourlyData.locations.length > 1 && (
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  {hourlyData.locations.map((location, idx) => (
-                                    <Badge
-                                      key={idx}
-                                      variant="secondary"
-                                      className="text-xs"
-                                    >
-                                      {location}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              )}
+                              <p className="text-2xl font-bold text-primary">
+                                {hourlyData.count}
+                              </p>
                             </div>
                           </div>
-                        </GradientCard>
-                      ))}
+
+                          {/* Details */}
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm">
+                              <MapPin className="w-4 h-4 text-muted-foreground" />
+                              <span>
+                                {hourlyData.locations.length === 1
+                                  ? hourlyData.locations[0]
+                                  : `${hourlyData.locations.length} locations`}
+                              </span>
+                            </div>
+                            {hourlyData.locations.length > 1 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {hourlyData.locations.map((location, idx) => (
+                                  <Badge
+                                    key={idx}
+                                    variant="secondary"
+                                    className="text-xs"
+                                  >
+                                    {location}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </GradientCard>
+                    ))
+                  ) : (
+                    // Individual items for trains/buses
+                    tab.data.map((item, index) => (
+                      <GradientCard
+                        key={index}
+                        className="hover:shadow-soft transition-shadow"
+                      >
+                        <div className="space-y-3">
+                          {/* Header */}
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <Badge
+                                  className={getTypeColor(item.type || tab.id)}
+                                >
+                                  {getIcon(item.type || tab.id)}
+                                  <span className="ml-1">
+                                    {item.title || tab.label}
+                                  </span>
+                                </Badge>
+                              </div>
+                              <h3 className="font-semibold text-lg">
+                                {item.title}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {item.details}
+                              </p>
+                            </div>
+
+                            <div className="text-right">
+                              <div className="flex items-center gap-1 text-sm font-medium mb-1">
+                                <Clock className="w-4 h-4" />
+                                {formatTime(item.hour)}
+                              </div>
+                              <p className="text-2xl font-bold text-primary">
+                                {item.totalPassengers}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                passengers
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Details */}
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-sm">
+                              <MapPin className="w-4 h-4 text-muted-foreground" />
+                              <span>{item.locations[0]}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </GradientCard>
+                    ))
+                  )}
                 </div>
               )}
             </TabsContent>
