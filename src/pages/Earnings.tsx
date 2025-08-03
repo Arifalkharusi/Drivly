@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useDataStore } from "@/hooks/useDataStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,59 +43,9 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 
-interface Earning {
-  id: string;
-  amount: number;
-  platform: string;
-  trips: number;
-  hours: number;
-  date: string;
-}
-
 const Earnings = () => {
   const { toast } = useToast();
-  const [earnings, setEarnings] = useState<Earning[]>([
-    {
-      id: "1",
-      amount: 145.5,
-      platform: "Uber",
-      trips: 8,
-      hours: 6.5,
-      date: "2024-01-15",
-    },
-    {
-      id: "2",
-      amount: 123.75,
-      platform: "Bolt",
-      trips: 6,
-      hours: 5.0,
-      date: "2024-01-15",
-    },
-    {
-      id: "3",
-      amount: 167.25,
-      platform: "Uber",
-      trips: 10,
-      hours: 7.5,
-      date: "2024-01-14",
-    },
-    {
-      id: "4",
-      amount: 89.0,
-      platform: "Bolt",
-      trips: 5,
-      hours: 4.0,
-      date: "2024-01-14",
-    },
-    {
-      id: "5",
-      amount: 200.0,
-      platform: "Lyft",
-      trips: 12,
-      hours: 8.0,
-      date: "2024-01-13",
-    },
-  ]);
+  const { earnings, addEarning, updateEarning, deleteEarning } = useDataStore();
 
   const [customPlatforms, setCustomPlatforms] = useState<string[]>(["Lyft"]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -142,7 +93,7 @@ const Earnings = () => {
       }
     }
 
-    const earningData: Earning = {
+    const earningData = {
       id: editingEarning?.id || Date.now().toString(),
       amount: parseFloat(formData.amount),
       platform: selectedPlatform,
@@ -152,11 +103,9 @@ const Earnings = () => {
     };
 
     if (editingEarning) {
-      setEarnings(
-        earnings.map((e) => (e.id === editingEarning.id ? earningData : e))
-      );
+      updateEarning(earningData);
     } else {
-      setEarnings([earningData, ...earnings]);
+      addEarning(earningData);
     }
 
     setFormData({
@@ -178,7 +127,7 @@ const Earnings = () => {
     });
   };
 
-  const openEditDialog = (earning?: Earning) => {
+  const openEditDialog = (earning?: any) => {
     if (earning) {
       setEditingEarning(earning);
       setFormData({
@@ -205,7 +154,7 @@ const Earnings = () => {
 
   const handleDeleteEarning = () => {
     if (earningToDelete) {
-      setEarnings(earnings.filter((earning) => earning.id !== earningToDelete));
+      deleteEarning(earningToDelete);
       setEarningToDelete(null);
       setIsDeleteDialogOpen(false);
 

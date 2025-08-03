@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useDataStore } from "@/hooks/useDataStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,38 +42,8 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 
-interface Expense {
-  id: string;
-  amount: number;
-  category: string;
-  description: string;
-  date: Date;
-  type: "manual" | "mileage";
-  miles?: number;
-  costPerMile?: number;
-}
-
 const Expenses = () => {
-  const [expenses, setExpenses] = useState<Expense[]>([
-    {
-      id: "1",
-      amount: 45.2,
-      category: "Fuel",
-      description: "Gas station fill-up",
-      date: new Date(),
-      type: "manual",
-    },
-    {
-      id: "2",
-      amount: 24.5,
-      category: "Mileage",
-      description: "Business miles",
-      date: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      type: "mileage",
-      miles: 45,
-      costPerMile: 0.545,
-    },
-  ]);
+  const { expenses, addExpense, updateExpense, deleteExpense } = useDataStore();
 
   const [customCategories, setCustomCategories] = useState<string[]>([
     "Parking",
@@ -126,7 +97,7 @@ const Expenses = () => {
         }
       }
 
-      const expense: Expense = {
+      const expense = {
         id: editingExpense?.id || Date.now().toString(),
         amount: parseFloat(newExpense.amount),
         category: selectedCategory,
@@ -136,11 +107,9 @@ const Expenses = () => {
       };
 
       if (editingExpense) {
-        setExpenses(
-          expenses.map((e) => (e.id === editingExpense.id ? expense : e))
-        );
+        updateExpense(expense);
       } else {
-        setExpenses([expense, ...expenses]);
+        addExpense(expense);
       }
     } else if (
       expenseType === "mileage" &&
@@ -149,7 +118,7 @@ const Expenses = () => {
     ) {
       const calculatedAmount =
         parseFloat(newExpense.miles) * parseFloat(newExpense.costPerMile);
-      const expense: Expense = {
+      const expense = {
         id: editingExpense?.id || Date.now().toString(),
         amount: calculatedAmount,
         category: "Mileage",
@@ -161,11 +130,9 @@ const Expenses = () => {
       };
 
       if (editingExpense) {
-        setExpenses(
-          expenses.map((e) => (e.id === editingExpense.id ? expense : e))
-        );
+        updateExpense(expense);
       } else {
-        setExpenses([expense, ...expenses]);
+        addExpense(expense);
       }
     }
 
@@ -182,7 +149,7 @@ const Expenses = () => {
     setIsDialogOpen(false);
   };
 
-  const openEditDialog = (expense?: Expense) => {
+  const openEditDialog = (expense?: any) => {
     if (expense) {
       setEditingExpense(expense);
       setExpenseType(expense.type);
@@ -225,7 +192,7 @@ const Expenses = () => {
 
   const handleDeleteExpense = () => {
     if (expenseToDelete) {
-      setExpenses(expenses.filter((expense) => expense.id !== expenseToDelete));
+      deleteExpense(expenseToDelete);
       setExpenseToDelete(null);
       setIsDeleteDialogOpen(false);
     }

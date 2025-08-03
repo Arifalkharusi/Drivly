@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useDataStore } from "@/hooks/useDataStore";
 import { Progress } from "@/components/ui/progress";
 import GradientCard from "@/components/GradientCard";
 import MobileNavigation from "@/components/MobileNavigation";
@@ -6,24 +6,22 @@ import { TrendingUp, TrendingDown, Target, DollarSign, BarChart3, Activity } fro
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const Dashboard = () => {
-  const [todayEarnings] = useState(247.50);
-  const [todayExpenses] = useState(45.20);
-  const [weeklyTarget] = useState(1500);
-  const [weeklyProgress] = useState(980);
+  const {
+    todayEarnings,
+    todayExpenses,
+    weeklyEarnings,
+    weeklyExpenses,
+    weeklyData,
+    totalTrips,
+    totalHours,
+    expenseBreakdown
+  } = useDataStore();
+
+  const weeklyTarget = 1500;
+  const weeklyProgress = weeklyEarnings;
 
   const progressPercentage = (weeklyProgress / weeklyTarget) * 100;
-  const netIncome = todayEarnings - todayExpenses;
-
-  // Chart data
-  const weeklyData = [
-    { day: 'Mon', earnings: 180, expenses: 45 },
-    { day: 'Tue', earnings: 220, expenses: 38 },
-    { day: 'Wed', earnings: 290, expenses: 52 },
-    { day: 'Thu', earnings: 170, expenses: 28 },
-    { day: 'Fri', earnings: 248, expenses: 45 },
-    { day: 'Sat', earnings: 165, expenses: 31 },
-    { day: 'Sun', earnings: 195, expenses: 42 }
-  ];
+  const netIncome = weeklyEarnings - weeklyExpenses;
 
   const dailyHoursData = [
     { hour: '6-8', earnings: 45 },
@@ -34,13 +32,6 @@ const Dashboard = () => {
     { hour: '16-18', earnings: 85 },
     { hour: '18-20', earnings: 68 },
     { hour: '20-22', earnings: 42 }
-  ];
-
-  const expenseBreakdown = [
-    { name: 'Fuel', value: 156, color: '#1E3C72' },
-    { name: 'Maintenance', value: 45, color: '#00B4DB' },
-    { name: 'Insurance', value: 33, color: '#43CEA2' },
-    { name: 'Other', value: 20, color: '#EF473A' }
   ];
 
   const COLORS = ['#1E3C72', '#00B4DB', '#43CEA2', '#EF473A'];
@@ -85,7 +76,7 @@ const Dashboard = () => {
                 </div>
                 <span className="text-white/80 text-xs sm:text-sm font-medium">Weekly Net</span>
               </div>
-              <p className="text-xl sm:text-2xl font-bold text-white">${(weeklyProgress - 234).toFixed(2)}</p>
+              <p className="text-xl sm:text-2xl font-bold text-white">${netIncome.toFixed(2)}</p>
               <p className="text-success text-xs">+12% vs last week</p>
             </div>
             
@@ -96,8 +87,8 @@ const Dashboard = () => {
                 </div>
                 <span className="text-white/80 text-xs sm:text-sm font-medium">Total Trips</span>
               </div>
-              <p className="text-xl sm:text-2xl font-bold text-white">87</p>
-              <p className="text-white/60 text-xs">42.5 hours active</p>
+              <p className="text-xl sm:text-2xl font-bold text-white">{totalTrips}</p>
+              <p className="text-white/60 text-xs">{totalHours.toFixed(1)} hours active</p>
             </div>
           </div>
           
@@ -272,7 +263,7 @@ const Dashboard = () => {
                 <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5 text-warning" />
                 <span className="text-xs sm:text-sm font-medium">Expenses</span>
               </div>
-              <p className="text-xl sm:text-2xl font-bold">$234</p>
+              <p className="text-xl sm:text-2xl font-bold">${weeklyExpenses.toFixed(2)}</p>
               <p className="text-xs sm:text-sm text-muted-foreground">-8% vs last week</p>
             </div>
           </GradientCard>
@@ -311,7 +302,7 @@ const Dashboard = () => {
                     <div className="flex items-center gap-2">
                       <div 
                         className="w-3 h-3 rounded-full" 
-                        style={{ backgroundColor: COLORS[index] }}
+                        style={{ backgroundColor: item.color }}
                       />
                       <span className="text-xs sm:text-sm">{item.name}</span>
                     </div>
