@@ -376,41 +376,142 @@ const CityInfo = () => {
 
   return (
     <div className="min-h-screen bg-gradient-background pb-20">
-      {/* Header */}
-      <div className="bg-gradient-primary text-white p-4 sm:p-6">
-        <div className="space-y-3 sm:space-y-4">
-          {/* City Selection */}
-          <div className="space-y-2">
-            <label className="text-xs sm:text-sm font-medium text-white/90">
-              Select City
-            </label>
-            <Select value={searchCity} onValueChange={setSearchCity}>
-              <SelectTrigger className="bg-white/10 border-white/20 text-white h-11 sm:h-10">
-                <SelectValue placeholder="Choose your city" />
-              </SelectTrigger>
-              <SelectContent>
-                {cities.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      {/* Modern Header with Glass Effect */}
+      <div className="relative bg-gradient-primary text-white overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)`,
+            backgroundSize: '20px 20px'
+          }} />
+        </div>
+        
+        <div className="relative p-4 sm:p-6 pb-6 sm:pb-8">
+          <div className="flex justify-between items-start sm:items-center mb-6">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-accent rounded-2xl flex items-center justify-center shadow-lg">
+                    <MapPin className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-success rounded-full animate-pulse" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white">City Intelligence</h1>
+                  <p className="text-white/80 text-sm flex items-center gap-1">
+                    <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
+                    Live transport data
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Current City */}
-          <GradientCard
-            variant="card"
-            className="bg-white/10 backdrop-blur-sm border-white/20"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/80 text-sm">Current Location</p>
-                <p className="text-xl font-bold text-white">{searchCity}</p>
-              </div>
-              <MapPin className="w-6 h-6 text-white/60" />
+          {/* City Selection */}
+          <div className="space-y-4 mb-6">
+            <div className="space-y-2">
+              <label className="text-xs sm:text-sm font-medium text-white/90">
+                Select City
+              </label>
+              <Select value={searchCity} onValueChange={setSearchCity}>
+                <SelectTrigger className="bg-white/10 border-white/20 text-white h-11 sm:h-10">
+                  <SelectValue placeholder="Choose your city" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cities.map((city) => (
+                    <SelectItem key={city} value={city}>
+                      {city}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </GradientCard>
+          </div>
+
+          {/* Modern Overview Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            {/* Current Location */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-white/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/15 transition-all duration-300">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center">
+                    <MapPin className="w-5 h-5 text-white" />
+                  </div>
+                  <Badge className="bg-blue-500/20 text-blue-100 border-blue-400/30 text-xs">
+                    Active
+                  </Badge>
+                </div>
+                <p className="text-white/80 text-sm mb-1">Current Location</p>
+                <p className="text-2xl font-bold text-white">{searchCity}</p>
+                <div className="w-full h-1 bg-white/20 rounded-full mt-3 overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full w-full animate-pulse" />
+                </div>
+              </div>
+            </div>
+
+            {/* Active Transports */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/15 transition-all duration-300">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center">
+                    <Activity className="w-5 h-5 text-white" />
+                  </div>
+                  <Badge className="bg-green-500/20 text-green-100 border-green-400/30 text-xs">
+                    +15.2%
+                  </Badge>
+                </div>
+                <p className="text-white/80 text-sm mb-1">Active Routes</p>
+                <p className="text-2xl font-bold text-white">24</p>
+                <div className="w-full h-1 bg-white/20 rounded-full mt-3 overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-green-400 to-emerald-600 rounded-full w-4/5 animate-pulse" />
+                </div>
+              </div>
+            </div>
+
+            {/* Peak Hours */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/15 transition-all duration-300">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-600 rounded-xl flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-white" />
+                  </div>
+                  <Badge className="bg-purple-500/20 text-purple-100 border-purple-400/30 text-xs">
+                    Peak
+                  </Badge>
+                </div>
+                <p className="text-white/80 text-sm mb-1">Peak Hours</p>
+                <p className="text-2xl font-bold text-white">9-11 AM</p>
+                <div className="w-full h-1 bg-white/20 rounded-full mt-3 overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-purple-400 to-pink-600 rounded-full w-3/4 animate-pulse" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Transport Summary Bar */}
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
+            <div className="grid grid-cols-4 gap-4 text-center">
+              <div>
+                <p className="text-white/60 text-xs mb-1">Flights Today</p>
+                <p className="text-lg font-bold text-white">12</p>
+              </div>
+              <div>
+                <p className="text-white/60 text-xs mb-1">Train Services</p>
+                <p className="text-lg font-bold text-white">8</p>
+              </div>
+              <div>
+                <p className="text-white/60 text-xs mb-1">Bus Routes</p>
+                <p className="text-lg font-bold text-white">15</p>
+              </div>
+              <div>
+                <p className="text-white/60 text-xs mb-1">Events</p>
+                <p className="text-lg font-bold text-success">6</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
