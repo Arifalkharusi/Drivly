@@ -345,7 +345,7 @@ const Expenses = () => {
                     {newExpense.category === "custom" && (
                       <div className="space-y-3">
                         <Label
-                          Amount (£)
+                          htmlFor="customCategory"
                           className="text-sm font-medium"
                         >
                           Custom Category Name
@@ -364,7 +364,7 @@ const Expenses = () => {
                         />
                       </div>
                     )}
-                          Standard HMRC rate: £0.45/mile
+
                     <div className="space-y-3">
                       <Label htmlFor="date" className="text-sm font-medium">
                         Date
