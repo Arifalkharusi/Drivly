@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import GradientCard from "@/components/GradientCard";
 import MobileNavigation from "@/components/MobileNavigation";
 import { 
@@ -25,7 +26,8 @@ import {
   Clock,
   Activity,
   Filter,
-  Search
+  Search,
+  ChevronDown
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Earning, Expense } from "@/lib/dataStore";
@@ -51,6 +53,10 @@ const Finance = () => {
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [editingEarning, setEditingEarning] = useState<Earning | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  
+  // Collapsible states
+  const [isEarningsFilterOpen, setIsEarningsFilterOpen] = useState(false);
+  const [isExpensesFilterOpen, setIsExpensesFilterOpen] = useState(false);
   
   // Filter states
   const [earningsFilter, setEarningsFilter] = useState({
@@ -402,77 +408,86 @@ const Finance = () => {
 
           <TabsContent value="earnings" className="space-y-3 sm:space-y-4">
             {/* Earnings Filters */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Filter className="w-4 h-4" />
-                  Filter Earnings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="search-earnings">Search</Label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="search-earnings"
-                        placeholder="Search platform..."
-                        value={earningsFilter.search}
-                        onChange={(e) => setEarningsFilter({...earningsFilter, search: e.target.value})}
-                        className="pl-10"
-                      />
+            <Collapsible open={isEarningsFilterOpen} onOpenChange={setIsEarningsFilterOpen}>
+              <Card>
+                <CollapsibleTrigger asChild>
+                  <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors">
+                    <CardTitle className="flex items-center justify-between text-base">
+                      <div className="flex items-center gap-2">
+                        <Filter className="w-4 h-4" />
+                        Filter Earnings
+                      </div>
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isEarningsFilterOpen ? 'rotate-180' : ''}`} />
+                    </CardTitle>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="search-earnings">Search</Label>
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            id="search-earnings"
+                            placeholder="Search platform..."
+                            value={earningsFilter.search}
+                            onChange={(e) => setEarningsFilter({...earningsFilter, search: e.target.value})}
+                            className="pl-10"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Platform</Label>
+                        <Select 
+                          value={earningsFilter.platform} 
+                          onValueChange={(value) => setEarningsFilter({...earningsFilter, platform: value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="All platforms" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all-platforms">All platforms</SelectItem>
+                            {uniquePlatforms.map(platform => (
+                              <SelectItem key={platform} value={platform}>{platform}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="date-from-earnings">From Date</Label>
+                        <Input
+                          id="date-from-earnings"
+                          type="date"
+                          value={earningsFilter.dateFrom}
+                          onChange={(e) => setEarningsFilter({...earningsFilter, dateFrom: e.target.value})}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="date-to-earnings">To Date</Label>
+                        <Input
+                          id="date-to-earnings"
+                          type="date"
+                          value={earningsFilter.dateTo}
+                          onChange={(e) => setEarningsFilter({...earningsFilter, dateTo: e.target.value})}
+                        />
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Platform</Label>
-                    <Select 
-                      value={earningsFilter.platform} 
-                      onValueChange={(value) => setEarningsFilter({...earningsFilter, platform: value})}
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setEarningsFilter({ platform: "all-platforms", dateFrom: "", dateTo: "", search: "" })}
+                      className="w-full sm:w-auto"
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="All platforms" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all-platforms">All platforms</SelectItem>
-                        {uniquePlatforms.map(platform => (
-                          <SelectItem key={platform} value={platform}>{platform}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="date-from-earnings">From Date</Label>
-                    <Input
-                      id="date-from-earnings"
-                      type="date"
-                      value={earningsFilter.dateFrom}
-                      onChange={(e) => setEarningsFilter({...earningsFilter, dateFrom: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="date-to-earnings">To Date</Label>
-                    <Input
-                      id="date-to-earnings"
-                      type="date"
-                      value={earningsFilter.dateTo}
-                      onChange={(e) => setEarningsFilter({...earningsFilter, dateTo: e.target.value})}
-                    />
-                  </div>
-                </div>
-                
-                <Button 
-                  variant="outline" 
-                  onClick={() => setEarningsFilter({ platform: "all-platforms", dateFrom: "", dateTo: "", search: "" })}
-                  className="w-full sm:w-auto"
-                >
-                  Clear Filters
-                </Button>
-              </CardContent>
-            </Card>
+                      Clear Filters
+                    </Button>
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
 
             {filteredEarnings.length === 0 ? (
               <GradientCard className="text-center py-8">
@@ -559,77 +574,86 @@ const Finance = () => {
 
           <TabsContent value="expenses" className="space-y-3 sm:space-y-4">
             {/* Expenses Filters */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Filter className="w-4 h-4" />
-                  Filter Expenses
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="search-expenses">Search</Label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="search-expenses"
-                        placeholder="Search category or description..."
-                        value={expensesFilter.search}
-                        onChange={(e) => setExpensesFilter({...expensesFilter, search: e.target.value})}
-                        className="pl-10"
-                      />
+            <Collapsible open={isExpensesFilterOpen} onOpenChange={setIsExpensesFilterOpen}>
+              <Card>
+                <CollapsibleTrigger asChild>
+                  <CardHeader className="cursor-pointer hover:bg-accent/50 transition-colors">
+                    <CardTitle className="flex items-center justify-between text-base">
+                      <div className="flex items-center gap-2">
+                        <Filter className="w-4 h-4" />
+                        Filter Expenses
+                      </div>
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isExpensesFilterOpen ? 'rotate-180' : ''}`} />
+                    </CardTitle>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="search-expenses">Search</Label>
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            id="search-expenses"
+                            placeholder="Search category or description..."
+                            value={expensesFilter.search}
+                            onChange={(e) => setExpensesFilter({...expensesFilter, search: e.target.value})}
+                            className="pl-10"
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label>Category</Label>
+                        <Select 
+                          value={expensesFilter.category} 
+                          onValueChange={(value) => setExpensesFilter({...expensesFilter, category: value})}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="All categories" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all-categories">All categories</SelectItem>
+                            {uniqueCategories.map(category => (
+                              <SelectItem key={category} value={category}>{category}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="date-from-expenses">From Date</Label>
+                        <Input
+                          id="date-from-expenses"
+                          type="date"
+                          value={expensesFilter.dateFrom}
+                          onChange={(e) => setExpensesFilter({...expensesFilter, dateFrom: e.target.value})}
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="date-to-expenses">To Date</Label>
+                        <Input
+                          id="date-to-expenses"
+                          type="date"
+                          value={expensesFilter.dateTo}
+                          onChange={(e) => setExpensesFilter({...expensesFilter, dateTo: e.target.value})}
+                        />
+                      </div>
                     </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>Category</Label>
-                    <Select 
-                      value={expensesFilter.category} 
-                      onValueChange={(value) => setExpensesFilter({...expensesFilter, category: value})}
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setExpensesFilter({ category: "all-categories", dateFrom: "", dateTo: "", search: "" })}
+                      className="w-full sm:w-auto"
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="All categories" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all-categories">All categories</SelectItem>
-                        {uniqueCategories.map(category => (
-                          <SelectItem key={category} value={category}>{category}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="date-from-expenses">From Date</Label>
-                    <Input
-                      id="date-from-expenses"
-                      type="date"
-                      value={expensesFilter.dateFrom}
-                      onChange={(e) => setExpensesFilter({...expensesFilter, dateFrom: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="date-to-expenses">To Date</Label>
-                    <Input
-                      id="date-to-expenses"
-                      type="date"
-                      value={expensesFilter.dateTo}
-                      onChange={(e) => setExpensesFilter({...expensesFilter, dateTo: e.target.value})}
-                    />
-                  </div>
-                </div>
-                
-                <Button 
-                  variant="outline" 
-                  onClick={() => setExpensesFilter({ category: "all-categories", dateFrom: "", dateTo: "", search: "" })}
-                  className="w-full sm:w-auto"
-                >
-                  Clear Filters
-                </Button>
-              </CardContent>
-            </Card>
+                      Clear Filters
+                    </Button>
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
 
             {filteredExpenses.length === 0 ? (
               <GradientCard className="text-center py-8">
