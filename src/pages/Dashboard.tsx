@@ -14,7 +14,8 @@ const Dashboard = () => {
     weeklyData,
     totalTrips,
     totalHours,
-    expenseBreakdown
+    expenseBreakdown,
+    dailyHoursData
   } = useDataStore();
 
   const weeklyTarget = 1500;
@@ -22,17 +23,6 @@ const Dashboard = () => {
 
   const progressPercentage = (weeklyProgress / weeklyTarget) * 100;
   const netIncome = weeklyEarnings - weeklyExpenses;
-
-  const dailyHoursData = [
-    { hour: '6-8', earnings: 45 },
-    { hour: '8-10', earnings: 62 },
-    { hour: '10-12', earnings: 38 },
-    { hour: '12-14', earnings: 55 },
-    { hour: '14-16', earnings: 72 },
-    { hour: '16-18', earnings: 85 },
-    { hour: '18-20', earnings: 68 },
-    { hour: '20-22', earnings: 42 }
-  ];
 
   const COLORS = ['#1E3C72', '#00B4DB', '#43CEA2', '#EF473A'];
 
@@ -202,7 +192,7 @@ const Dashboard = () => {
         <GradientCard>
           <div className="space-y-3 sm:space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-base sm:text-lg text-primary">Peak Hours This Week</h3>
+              <h3 className="font-semibold text-base sm:text-lg text-primary">Daily Hours This Week</h3>
               <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
             
@@ -210,7 +200,7 @@ const Dashboard = () => {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dailyHoursData}>
                   <XAxis 
-                    dataKey="hour" 
+                    dataKey="day" 
                     axisLine={false}
                     tickLine={false}
                     tick={{ fontSize: 9, fill: 'hsl(var(--muted-foreground))' }}
@@ -232,9 +222,13 @@ const Dashboard = () => {
                       fontSize: '12px',
                       color: 'hsl(var(--card-foreground))'
                     }}
+                    formatter={(value, name) => [
+                      name === 'hours' ? `${value}h` : `$${value}`,
+                      name === 'hours' ? 'Hours Worked' : 'Earnings'
+                    ]}
                   />
                   <Bar 
-                    dataKey="earnings" 
+                    dataKey="hours" 
                     fill="#00B4DB" 
                     radius={[4, 4, 0, 0]}
                   />

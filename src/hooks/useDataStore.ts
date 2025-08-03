@@ -34,5 +34,6 @@ export const useDataStore = () => {
     totalTrips: dataStore.getTotalTrips(),
     totalHours: dataStore.getTotalHours(),
     expenseBreakdown: dataStore.getExpenseBreakdown(),
+    dailyHoursData: dataStore.getDailyHoursData(),
   };
 };

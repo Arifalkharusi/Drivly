@@ -190,6 +190,34 @@ class DataStore {
     return weekData;
   }
 
+  getDailyHoursData(): Array<{day: string, hours: number, earnings: number}> {
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const today = new Date();
+    const hoursData = [];
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      const dayName = days[date.getDay() === 0 ? 6 : date.getDay() - 1]; // Adjust for Monday start
+
+      const dayHours = this.earnings
+        .filter(e => e.date === dateStr)
+        .reduce((sum, e) => sum + e.hours, 0);
+
+      const dayEarnings = this.earnings
+        .filter(e => e.date === dateStr)
+        .reduce((sum, e) => sum + e.amount, 0);
+
+      hoursData.push({
+        day: dayName,
+        hours: dayHours,
+        earnings: dayEarnings
+      });
+    }
+
+    return hoursData;
+  }
   getTotalTrips(): number {
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
