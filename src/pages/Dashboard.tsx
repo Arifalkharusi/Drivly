@@ -247,7 +247,7 @@ const Dashboard = () => {
                 <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
                 <span className="text-xs sm:text-sm font-medium">This Week</span>
               </div>
-              <p className="text-xl sm:text-2xl font-bold">£{weeklyProgress}</p>
+              <p className="text-xl sm:text-2xl font-bold">${weeklyProgress}</p>
               <p className="text-xs sm:text-sm text-muted-foreground">+12% vs last week</p>
             </div>
           </GradientCard>
