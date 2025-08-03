@@ -45,8 +45,21 @@ interface HourlyCount {
 
 const CityInfo = () => {
   const [searchCity, setSearchCity] = useState("Birmingham");
-  
-  // UK cities with their transport hubs - moved to top to fix initialization error
+  const [activeTab, setActiveTab] = useState("flights");
+  const [arrivals, setArrivals] = useState<CityEvent[]>([]);
+  const [transportData, setTransportData] = useState<{
+    trains: CityEvent[];
+    buses: CityEvent[];
+    events: CityEvent[];
+  }>({
+    trains: [],
+    buses: [],
+    events: [],
+  });
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  // UK cities with their transport hubs
   const cityConfig = {
     Birmingham: {
       iata: "BHX",
@@ -62,97 +75,72 @@ const CityInfo = () => {
     },
   };
 
-  const [activeTab, setActiveTab] = useState("flights");
-  const [arrivals, setArrivals] = useState<any[]>([]);
-  const [transportData, setTransportData] = useState<{
-    trains: CityEvent[];
-    buses: CityEvent[];
-    events: CityEvent[];
-  }>({
-    trains: [],
-    buses: [],
-    events: [],
-  });
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
+  // Fetch flight data
+  const fetchFlightData = async () => {
+    const config = cityConfig[searchCity as keyof typeof cityConfig];
+    if (!config) return;
+
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-flight-data`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            iataCode: config.iata,
+            date: new Date().toISOString().split("T")[0],
+          }),
+        }
+      );
+
+      const data = await response.json();
+      setArrivals(data.flights || []);
+    } catch (error) {
+      console.error("Flight API error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch flight data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Fetch transport data (trains/buses)
   const fetchTransportData = async (type: "train" | "bus" | "event") => {
     try {
       setLoading(true);
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get-transport-data`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: "London",
+            to: searchCity,
+            type: type === "train" ? "train" : "bus",
+            date: new Date().toISOString().split("T")[0],
+            time: "09:00",
+          }),
+        }
+      );
+
+      const data = await response.json();
       
-      // Mock data for trains
       if (type === "train") {
-        const mockTrains: CityEvent[] = [
-          {
-            id: "train-1",
-            title: "Virgin Trains - London Euston",
-            type: "train",
-            time: "09:15",
-            location: `${searchCity} New Street`,
-            details: "Platform 4",
-            passengers: 180,
-          },
-          {
-            id: "train-2", 
-            title: "CrossCountry - Edinburgh",
-            type: "train",
-            time: "10:30",
-            location: `${searchCity} New Street`,
-            details: "Platform 7",
-            passengers: 220,
-          },
-          {
-            id: "train-3",
-            title: "West Midlands Railway - Worcester",
-            type: "train", 
-            time: "11:45",
-            location: `${searchCity} New Street`,
-            details: "Platform 2",
-            passengers: 95,
-          },
-        ];
-        
-        setTransportData(prev => ({ ...prev, trains: mockTrains }));
-      }
-      
-      // Mock data for buses
-      if (type === "bus") {
-        const mockBuses: CityEvent[] = [
-          {
-            id: "bus-1",
-            title: "National Express - London Victoria",
-            type: "bus",
-            time: "08:30",
-            location: `${searchCity} Coach Station`,
-            details: "Bay 12",
-            passengers: 45,
-          },
-          {
-            id: "bus-2",
-            title: "Megabus - Manchester",
-            type: "bus", 
-            time: "12:15",
-            location: `${searchCity} Coach Station`,
-            details: "Bay 8",
-            passengers: 38,
-          },
-          {
-            id: "bus-3",
-            title: "FlixBus - Liverpool",
-            type: "bus",
-            time: "15:20", 
-            location: `${searchCity} Coach Station`,
-            details: "Bay 5",
-            passengers: 52,
-          },
-        ];
-        
-        setTransportData(prev => ({ ...prev, buses: mockBuses }));
-      }
-      
-      // Mock data for events
-      if (type === "event") {
+        setTransportData(prev => ({ ...prev, trains: data.trains || [] }));
+      } else if (type === "bus") {
+        setTransportData(prev => ({ ...prev, buses: data.buses || [] }));
+      } else if (type === "event") {
+        // Mock events data for now
         const mockEvents: CityEvent[] = [
           {
             id: "event-1",
@@ -191,7 +179,6 @@ const CityInfo = () => {
             passengers: 1800,
           },
         ];
-        
         setTransportData(prev => ({ ...prev, events: mockEvents }));
       }
     } catch (error) {
@@ -206,96 +193,44 @@ const CityInfo = () => {
     }
   };
 
-  // Fetch flight arrivals data
-  useEffect(() => {
-    const fetchArrivals = async (city: string) => {
-      const config = cityConfig[city as keyof typeof cityConfig];
-      if (!config) return;
-      
-      const getCurrentAndFutureTime = () => {
-        const now = new Date();
-        const future = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        
-        const formatDate = (date: Date) => {
-          return date.toISOString().split('T')[0];
-        };
-        
-        return {
-          current: formatDate(now),
-          future: formatDate(future)
-        };
-      };
-      
-      const headers = {
-        "X-RapidAPI-Key": "8301f8c387msh12139157bfaee9bp116ab6jsn0633ba721fa9",
-        "X-RapidAPI-Host": "aerodatabox.p.rapidapi.com",
-      };
-
-      const times = getCurrentAndFutureTime();
-      
-      const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/${config.iata}/${times.current}/${times.future}?withLeg=true&direction=Both&withCancelled=true&withCodeshared=true&withCargo=true&withPrivate=true&withLocation=false`;
-
-      try {
-        const response = await fetch(url, { headers });
-        const data = await response.json();
-        const filtered = (data.arrivals || []).filter((arrival: any) => {
-          return (
-            arrival.movement?.airport?.iata === config.iata &&
-            arrival.isCargo === false
-          );
-        });
-        console.log(`Filtered arrivals for ${city}:`, filtered);
-        setArrivals(filtered || []);
-      } catch (err) {
-        console.error("Failed to fetch arrivals:", err);
-        setArrivals([]);
-      }
-    };
-
-    fetchArrivals(searchCity);
-  }, [searchCity]);
-
   // Process flight data into hourly counts
   const flightData = useMemo(() => {
-    const counts: Record<number, { count: number; locations: Set<string> }> = {};
+    const counts: Record<string, HourlyCount> = {};
 
-    (arrivals || []).forEach((arrival) => {
-      if (!arrival.arrival?.scheduledTime?.local) return;
-      
-      const arrivalTime = new Date(arrival.arrival.scheduledTime.local);
-      const hour = arrivalTime.getHours();
-
+    arrivals.forEach((arrival) => {
+      const hour = arrival.time.split(":")[0] + ":00";
       if (!counts[hour]) {
-        counts[hour] = { count: 0, locations: new Set() };
+        counts[hour] = {
+          hour,
+          count: 0,
+          locations: [],
+          totalPassengers: 0,
+        };
       }
       counts[hour].count += 1;
-      counts[hour].locations.add(cityConfig[searchCity as keyof typeof cityConfig]?.iata || searchCity);
+      counts[hour].totalPassengers += arrival.passengers || 0;
+      if (!counts[hour].locations.includes(arrival.location)) {
+        counts[hour].locations.push(arrival.location);
+      }
     });
 
-    return Object.entries(counts)
-      .sort((a, b) => Number(a[0]) - Number(b[0]))
-      .map(([hour, data]) => ({
-        hour: `${hour.padStart(2, "0")}:00 - ${(Number(hour) + 1)
-          .toString()
-          .padStart(2, "0")}:00`,
-        count: data.count,
-        locations: Array.from(data.locations),
-        totalPassengers: 0,
-      }));
-  }, [arrivals, searchCity]);
+    return Object.values(counts).sort((a, b) => a.hour.localeCompare(b.hour));
+  }, [arrivals]);
 
   const cities = Object.keys(cityConfig);
 
-  // Fetch transport data when tab changes
+  // Fetch data when city or tab changes
   useEffect(() => {
-    if (activeTab === "trains") {
+    if (activeTab === "flights") {
+      fetchFlightData();
+    } else if (activeTab === "trains") {
       fetchTransportData("train");
     } else if (activeTab === "buses") {
       fetchTransportData("bus");
     } else if (activeTab === "events") {
       fetchTransportData("event");
     }
-  }, [activeTab, searchCity]);
+  }, [searchCity, activeTab]);
 
   const getIcon = (type: string) => {
     switch (type) {
