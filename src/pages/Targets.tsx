@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useDataStore } from "@/hooks/useDataStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,41 +9,41 @@ import { Switch } from "@/components/ui/switch";
 import GradientCard from "@/components/GradientCard";
 import MobileNavigation from "@/components/MobileNavigation";
 import { Target, Edit3, TrendingUp, Calendar, Clock } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface TargetData {
   id: string;
   type: "daily" | "weekly" | "monthly";
   amount: number;
-  current: number;
   enabled: boolean;
-  startDate: Date;
 }
 
 const Targets = () => {
+  const { toast } = useToast();
+  const { 
+    todayEarnings, 
+    weeklyEarnings, 
+    earnings 
+  } = useDataStore();
+
   const [targets, setTargets] = useState<TargetData[]>([
     {
       id: "daily",
       type: "daily",
       amount: 200,
-      current: 147.50,
       enabled: true,
-      startDate: new Date()
     },
     {
       id: "weekly",
       type: "weekly",
       amount: 1200,
-      current: 850,
       enabled: true,
-      startDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
     },
     {
       id: "monthly",
       type: "monthly",
       amount: 5000,
-      current: 3250,
       enabled: false,
-      startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
     }
   ]);
 
@@ -50,12 +51,47 @@ const Targets = () => {
   const [editingTarget, setEditingTarget] = useState<TargetData | null>(null);
   const [editAmount, setEditAmount] = useState("");
 
+  // Calculate actual earnings for each period
+  const getActualEarnings = (type: string) => {
+    const now = new Date();
+    
+    switch (type) {
+      case "daily":
+        return todayEarnings;
+      
+      case "weekly":
+        return weeklyEarnings;
+      
+      case "monthly":
+        // Calculate current month earnings
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const monthlyEarnings = earnings
+          .filter(earning => {
+            const earningDate = new Date(earning.date);
+            return earningDate >= startOfMonth && earningDate <= now;
+          })
+          .reduce((sum, earning) => sum + earning.amount, 0);
+        return monthlyEarnings;
+      
+      default:
+        return 0;
+    }
+  };
+
   const handleToggleTarget = (targetId: string) => {
     setTargets(targets.map(target => 
       target.id === targetId 
         ? { ...target, enabled: !target.enabled }
         : target
     ));
+
+    const targetType = targets.find(t => t.id === targetId)?.type;
+    const isEnabled = !targets.find(t => t.id === targetId)?.enabled;
+    
+    toast({
+      title: isEnabled ? "Target Enabled" : "Target Disabled",
+      description: `${targetType?.charAt(0).toUpperCase()}${targetType?.slice(1)} target has been ${isEnabled ? 'enabled' : 'disabled'}`,
+    });
   };
 
   const handleEditTarget = (target: TargetData) => {
@@ -76,37 +112,55 @@ const Targets = () => {
     setEditingTarget(null);
     setEditAmount("");
     setIsEditDialogOpen(false);
+
+    toast({
+      title: "Target Updated",
+      description: `${editingTarget.type.charAt(0).toUpperCase()}${editingTarget.type.slice(1)} target has been updated to £${parseFloat(editAmount).toFixed(2)}`,
+    });
   };
 
   const getProgressPercentage = (current: number, target: number) => {
     return Math.min((current / target) * 100, 100);
   };
 
-  const getRemainingTime = (type: string, startDate: Date) => {
+  const getRemainingTime = (type: string) => {
     const now = new Date();
     let endDate: Date;
 
     switch (type) {
       case "daily":
-        endDate = new Date(startDate);
-        endDate.setDate(startDate.getDate() + 1);
+        endDate = new Date(now);
+        endDate.setDate(now.getDate() + 1);
+        endDate.setHours(0, 0, 0, 0);
         break;
       case "weekly":
-        endDate = new Date(startDate);
-        endDate.setDate(startDate.getDate() + 7);
+        // Calculate end of current week (Sunday)
+        const daysUntilSunday = 7 - now.getDay();
+        endDate = new Date(now);
+        endDate.setDate(now.getDate() + daysUntilSunday);
+        endDate.setHours(23, 59, 59, 999);
         break;
       case "monthly":
-        endDate = new Date(startDate);
-        endDate.setMonth(startDate.getMonth() + 1);
+        // End of current month
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        endDate.setHours(23, 59, 59, 999);
         break;
       default:
         return "Unknown";
     }
 
     const diffMs = endDate.getTime() - now.getTime();
+    const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
     const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffDays < 0) return "Expired";
+    if (diffMs < 0) return "Expired";
+    
+    if (type === "daily") {
+      if (diffHours <= 1) return "Less than 1 hour left";
+      if (diffHours < 24) return `${diffHours} hours left`;
+      return "Today";
+    }
+    
     if (diffDays === 0) return "Today";
     if (diffDays === 1) return "1 day left";
     return `${diffDays} days left`;
@@ -138,8 +192,32 @@ const Targets = () => {
     }
   };
 
+  const getDailyNeeded = (type: string, current: number, target: number) => {
+    const remaining = Math.max(0, target - current);
+    const now = new Date();
+    
+    switch (type) {
+      case "daily":
+        return remaining; // What's left for today
+      case "weekly":
+        // Days left in current week
+        const daysLeftInWeek = 7 - now.getDay();
+        return daysLeftInWeek > 0 ? remaining / daysLeftInWeek : remaining;
+      case "monthly":
+        // Days left in current month
+        const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        const daysLeftInMonth = lastDayOfMonth - now.getDate() + 1;
+        return daysLeftInMonth > 0 ? remaining / daysLeftInMonth : remaining;
+      default:
+        return 0;
+    }
+  };
+
   const enabledTargets = targets.filter(t => t.enabled);
-  const completedTargets = enabledTargets.filter(t => getProgressPercentage(t.current, t.amount) >= 100);
+  const completedTargets = enabledTargets.filter(t => {
+    const current = getActualEarnings(t.type);
+    return getProgressPercentage(current, t.amount) >= 100;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-background pb-20">
@@ -148,7 +226,7 @@ const Targets = () => {
         <div className="flex justify-between items-start sm:items-center mb-4 sm:mb-6">
           <div className="flex-1 min-w-0">
             <h1 className="text-xl sm:text-2xl font-bold text-white truncate">Income Targets</h1>
-            <p className="text-white/90 text-sm sm:text-base mt-1">Manage your earning goals</p>
+            <p className="text-white/90 text-sm sm:text-base mt-1">Track your earning goals</p>
           </div>
           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center ml-3 flex-shrink-0">
             <Target className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -183,9 +261,11 @@ const Targets = () => {
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 mt-4 sm:mt-6">
         <div className="space-y-4">
           {targets.map((target) => {
-            const progressPercentage = getProgressPercentage(target.current, target.amount);
+            const current = getActualEarnings(target.type);
+            const progressPercentage = getProgressPercentage(current, target.amount);
             const isCompleted = progressPercentage >= 100;
-            const remaining = target.amount - target.current;
+            const remaining = Math.max(0, target.amount - current);
+            const dailyNeeded = getDailyNeeded(target.type, current, target.amount);
 
             return (
               <GradientCard key={target.id} className={`hover:shadow-elegant transition-all duration-300 animate-fade-in p-4 sm:p-6 ${!target.enabled ? 'opacity-60' : ''}`}>
@@ -206,7 +286,7 @@ const Targets = () => {
                         <h3 className="font-bold text-base capitalize text-primary">{target.type} Target</h3>
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          {target.enabled ? getRemainingTime(target.type, target.startDate) : 'Disabled'}
+                          {target.enabled ? getRemainingTime(target.type) : 'Disabled'}
                         </p>
                       </div>
                     </div>
@@ -238,7 +318,7 @@ const Targets = () => {
                         
                         <div className="flex items-baseline justify-between mb-3">
                           <div>
-                            <span className="text-2xl font-bold text-foreground">£{target.current.toFixed(2)}</span>
+                            <span className="text-2xl font-bold text-foreground">£{current.toFixed(2)}</span>
                           </div>
                           <div className="text-right">
                             <span className="text-base text-muted-foreground">of £{target.amount.toFixed(2)}</span>
@@ -267,11 +347,11 @@ const Targets = () => {
                           <>
                             <div className="bg-primary/5 border border-primary/10 rounded-xl p-3 text-center">
                               <div className="text-xs text-muted-foreground mb-1">Today's Earnings</div>
-                              <div className="font-bold text-base text-primary">£{target.current.toFixed(2)}</div>
+                              <div className="font-bold text-base text-primary">£{current.toFixed(2)}</div>
                             </div>
                             <div className="bg-muted/30 rounded-xl p-3 text-center">
-                              <div className="text-xs text-muted-foreground mb-1">Completion</div>
-                              <div className="font-bold text-base">{progressPercentage.toFixed(0)}%</div>
+                              <div className="text-xs text-muted-foreground mb-1">Still Needed</div>
+                              <div className="font-bold text-base">£{remaining.toFixed(2)}</div>
                             </div>
                           </>
                         )}
@@ -279,14 +359,12 @@ const Targets = () => {
                         {target.type === "weekly" && (
                           <>
                             <div className="bg-primary/5 border border-primary/10 rounded-xl p-3 text-center">
-                              <div className="text-xs text-muted-foreground mb-1">Daily Avg</div>
-                              <div className="font-bold text-base text-primary">£{(target.current / 7).toFixed(2)}</div>
+                              <div className="text-xs text-muted-foreground mb-1">Weekly Total</div>
+                              <div className="font-bold text-base text-primary">£{current.toFixed(2)}</div>
                             </div>
                             <div className="bg-muted/30 rounded-xl p-3 text-center">
                               <div className="text-xs text-muted-foreground mb-1">Daily Needed</div>
-                              <div className="font-bold text-base">
-                                £{remaining > 0 ? (remaining / Math.max(1, Math.ceil((new Date(target.startDate.getTime() + 7 * 24 * 60 * 60 * 1000).getTime() - new Date().getTime()) / (24 * 60 * 60 * 1000)))).toFixed(2) : "0.00"}
-                              </div>
+                              <div className="font-bold text-base">£{dailyNeeded.toFixed(2)}</div>
                             </div>
                           </>
                         )}
@@ -294,12 +372,12 @@ const Targets = () => {
                         {target.type === "monthly" && (
                           <>
                             <div className="bg-primary/5 border border-primary/10 rounded-xl p-3 text-center">
-                              <div className="text-xs text-muted-foreground mb-1">Weekly Avg</div>
-                              <div className="font-bold text-base text-primary">£{(target.current / 4).toFixed(2)}</div>
+                              <div className="text-xs text-muted-foreground mb-1">Monthly Total</div>
+                              <div className="font-bold text-base text-primary">£{current.toFixed(2)}</div>
                             </div>
                             <div className="bg-muted/30 rounded-xl p-3 text-center">
-                              <div className="text-xs text-muted-foreground mb-1">Daily Avg</div>
-                              <div className="font-bold text-base">£{(target.current / 30).toFixed(2)}</div>
+                              <div className="text-xs text-muted-foreground mb-1">Daily Needed</div>
+                              <div className="font-bold text-base">£{dailyNeeded.toFixed(2)}</div>
                             </div>
                           </>
                         )}
@@ -349,7 +427,7 @@ const Targets = () => {
             <div className="bg-muted/20 rounded-xl p-4">
               <h4 className="font-medium mb-2">Current Progress</h4>
               <p className="text-sm text-muted-foreground">
-                You've earned £{editingTarget?.current.toFixed(2)} towards your {editingTarget?.type} target
+                You've earned £{editingTarget ? getActualEarnings(editingTarget.type).toFixed(2) : '0.00'} towards your {editingTarget?.type} target
               </p>
             </div>
 
