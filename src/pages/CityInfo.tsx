@@ -59,6 +59,30 @@ const CityInfo = () => {
   });
   const { toast } = useToast();
 
+  function getCurrentAndFutureTime() {
+    const pad = (n) => n.toString().padStart(2, "0");
+
+    const now = new Date();
+    const future = new Date(now.getTime() + 12 * 60 * 60 * 1000); // add 12 hours
+
+    const format = (date) => {
+      const year = date.getFullYear();
+      const month = pad(date.getMonth() + 1); // months are 0-based
+      const day = pad(date.getDate());
+      const hours = pad(date.getHours());
+      const minutes = pad(date.getMinutes());
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+
+    return {
+      current: format(now),
+      future: format(future),
+    };
+  }
+
+  const times = getCurrentAndFutureTime();
+  console.log("Current and Future Times:", times);
+
   useEffect(() => {
     const fetchArrivals = async () => {
       const headers = {
@@ -66,7 +90,7 @@ const CityInfo = () => {
         "X-RapidAPI-Host": "aerodatabox.p.rapidapi.com",
       };
 
-      const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/BHX/2025-08-01T10:00/2025-08-01T22:00?withLeg=true&direction=Both&withCancelled=true&withCodeshared=true&withCargo=true&withPrivate=true&withLocation=false`;
+      const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/BHX/${times.current}/${times.future}?withLeg=true&direction=Both&withCancelled=true&withCodeshared=true&withCargo=true&withPrivate=true&withLocation=false`;
 
       try {
         const response = await fetch(url, { headers });
