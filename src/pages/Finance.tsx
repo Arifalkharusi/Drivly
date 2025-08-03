@@ -54,14 +54,14 @@ const Finance = () => {
   
   // Filter states
   const [earningsFilter, setEarningsFilter] = useState({
-    platform: "",
+    platform: "all-platforms",
     dateFrom: "",
     dateTo: "",
     search: "",
   });
   
   const [expensesFilter, setExpensesFilter] = useState({
-    category: "",
+    category: "all-categories",
     dateFrom: "",
     dateTo: "",
     search: "",
@@ -90,7 +90,7 @@ const Finance = () => {
 
   // Filter functions
   const filteredEarnings = earnings.filter(earning => {
-    const matchesPlatform = !earningsFilter.platform || earning.platform === earningsFilter.platform;
+    const matchesPlatform = !earningsFilter.platform || earningsFilter.platform === "all-platforms" || earning.platform === earningsFilter.platform;
     const matchesDateFrom = !earningsFilter.dateFrom || earning.date >= earningsFilter.dateFrom;
     const matchesDateTo = !earningsFilter.dateTo || earning.date <= earningsFilter.dateTo;
     const matchesSearch = !earningsFilter.search || 
@@ -100,7 +100,7 @@ const Finance = () => {
   });
 
   const filteredExpenses = expenses.filter(expense => {
-    const matchesCategory = !expensesFilter.category || expense.category === expensesFilter.category;
+    const matchesCategory = !expensesFilter.category || expensesFilter.category === "all-categories" || expense.category === expensesFilter.category;
     const expenseDate = expense.date.toISOString().split('T')[0];
     const matchesDateFrom = !expensesFilter.dateFrom || expenseDate >= expensesFilter.dateFrom;
     const matchesDateTo = !expensesFilter.dateTo || expenseDate <= expensesFilter.dateTo;
@@ -435,7 +435,7 @@ const Finance = () => {
                         <SelectValue placeholder="All platforms" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All platforms</SelectItem>
+                        <SelectItem value="all-platforms">All platforms</SelectItem>
                         {uniquePlatforms.map(platform => (
                           <SelectItem key={platform} value={platform}>{platform}</SelectItem>
                         ))}
@@ -466,7 +466,7 @@ const Finance = () => {
                 
                 <Button 
                   variant="outline" 
-                  onClick={() => setEarningsFilter({ platform: "", dateFrom: "", dateTo: "", search: "" })}
+                  onClick={() => setEarningsFilter({ platform: "all-platforms", dateFrom: "", dateTo: "", search: "" })}
                   className="w-full sm:w-auto"
                 >
                   Clear Filters
@@ -592,7 +592,7 @@ const Finance = () => {
                         <SelectValue placeholder="All categories" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All categories</SelectItem>
+                        <SelectItem value="all-categories">All categories</SelectItem>
                         {uniqueCategories.map(category => (
                           <SelectItem key={category} value={category}>{category}</SelectItem>
                         ))}
@@ -623,7 +623,7 @@ const Finance = () => {
                 
                 <Button 
                   variant="outline" 
-                  onClick={() => setExpensesFilter({ category: "", dateFrom: "", dateTo: "", search: "" })}
+                  onClick={() => setExpensesFilter({ category: "all-categories", dateFrom: "", dateTo: "", search: "" })}
                   className="w-full sm:w-auto"
                 >
                   Clear Filters
