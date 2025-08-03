@@ -59,135 +59,128 @@ const CityInfo = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  // UK cities with their transport hubs
-  const cityConfig = {
-    Birmingham: {
-      iata: "BHX",
-      airportName: "Birmingham Airport",
-    },
-    Manchester: {
-      iata: "MAN",
-      airportName: "Manchester Airport",
-    },
-    Liverpool: {
-      iata: "LPL",
-      airportName: "Liverpool John Lennon Airport",
-    },
-  };
+  // Demo data for different cities and transport types
+  const getDemoData = (city: string, type: "flight" | "train" | "bus" | "event"): CityEvent[] => {
+    const cityConfig = {
+      Birmingham: { airport: "Birmingham Airport", station: "Birmingham New Street" },
+      Manchester: { airport: "Manchester Airport", station: "Manchester Piccadilly" },
+      Liverpool: { airport: "Liverpool John Lennon Airport", station: "Liverpool Lime Street" },
+    };
 
-  // Fetch flight data
-  const fetchFlightData = async () => {
-    const config = cityConfig[searchCity as keyof typeof cityConfig];
-    if (!config) return;
+    const config = cityConfig[city as keyof typeof cityConfig] || cityConfig.Birmingham;
 
-    try {
-      setLoading(true);
-      // Mock flight data to prevent API errors
-      const mockFlights: CityEvent[] = [
-        {
-          id: "flight-1",
-          title: `British Airways BA123 - London Heathrow`,
-          type: "flight",
-          time: "09:15",
-          location: `${config.airportName} Terminal 1`,
-          details: "Arrival from LHR",
-          passengers: 180,
-          terminal: "1",
-        },
-        {
-          id: "flight-2",
-          title: `Ryanair FR456 - Dublin`,
-          type: "flight",
-          time: "10:30",
-          location: `${config.airportName} Terminal 2`,
-          details: "Arrival from DUB",
-          passengers: 189,
-          terminal: "2",
-        },
-        {
-          id: "flight-3",
-          title: `EasyJet U2789 - Amsterdam`,
-          type: "flight",
-          time: "11:45",
-          location: `${config.airportName} Terminal 1`,
-          details: "Arrival from AMS",
-          passengers: 156,
-          terminal: "1",
-        },
-      ];
-      setArrivals(mockFlights);
-    } catch (error) {
-      console.error("Flight API error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch flight data",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch transport data (trains/buses)
-  const fetchTransportData = async (type: "train" | "bus" | "event") => {
-    try {
-      setLoading(true);
-      
-      if (type === "train") {
-        // Mock train data to prevent API errors
-        const mockTrains: CityEvent[] = [
+    switch (type) {
+      case "flight":
+        return [
+          {
+            id: "flight-1",
+            title: "British Airways BA123 - London Heathrow",
+            type: "flight",
+            time: "09:15",
+            location: `${config.airport} Terminal 1`,
+            details: "Arrival from LHR",
+            passengers: 180,
+            terminal: "1",
+          },
+          {
+            id: "flight-2",
+            title: "Ryanair FR456 - Dublin",
+            type: "flight",
+            time: "10:30",
+            location: `${config.airport} Terminal 2`,
+            details: "Arrival from DUB",
+            passengers: 189,
+            terminal: "2",
+          },
+          {
+            id: "flight-3",
+            title: "EasyJet U2789 - Amsterdam",
+            type: "flight",
+            time: "11:45",
+            location: `${config.airport} Terminal 1`,
+            details: "Arrival from AMS",
+            passengers: 156,
+            terminal: "1",
+          },
+          {
+            id: "flight-4",
+            title: "Lufthansa LH901 - Frankfurt",
+            type: "flight",
+            time: "14:20",
+            location: `${config.airport} Terminal 1`,
+            details: "Arrival from FRA",
+            passengers: 165,
+            terminal: "1",
+          },
+        ];
+      case "train":
+        return [
           {
             id: "train-1",
-            title: `London to ${searchCity} Express`,
+            title: `London to ${city} Express`,
             type: "train",
             time: "09:15",
-            location: `${searchCity} New Street`,
+            location: config.station,
             details: "High Speed Service",
             passengers: 180,
           },
           {
             id: "train-2",
-            title: `London to ${searchCity} Service`,
+            title: `London to ${city} Service`,
             type: "train",
             time: "10:30",
-            location: `${searchCity} Central`,
+            location: config.station,
             details: "Standard Service",
             passengers: 120,
           },
+          {
+            id: "train-3",
+            title: `Edinburgh to ${city}`,
+            type: "train",
+            time: "12:45",
+            location: config.station,
+            details: "Cross Country Service",
+            passengers: 95,
+          },
         ];
-        setTransportData(prev => ({ ...prev, trains: mockTrains }));
-      } else if (type === "bus") {
-        // Mock bus data to prevent API errors
-        const mockBuses: CityEvent[] = [
+      case "bus":
+        return [
           {
             id: "bus-1",
-            title: `National Express to ${searchCity}`,
+            title: `National Express to ${city}`,
             type: "bus",
             time: "08:45",
-            location: `${searchCity} Coach Station`,
+            location: `${city} Coach Station`,
             details: "Express Service",
             passengers: 45,
           },
           {
             id: "bus-2",
-            title: `Megabus to ${searchCity}`,
+            title: `Megabus to ${city}`,
             type: "bus",
             time: "11:20",
-            location: `${searchCity} Bus Terminal`,
+            location: `${city} Bus Terminal`,
             details: "Budget Service",
             passengers: 38,
           },
+          {
+            id: "bus-3",
+            title: `FlixBus to ${city}`,
+            type: "bus",
+            time: "16:30",
+            location: `${city} Coach Station`,
+            details: "European Service",
+            passengers: 52,
+          },
         ];
-        setTransportData(prev => ({ ...prev, buses: mockBuses }));
-      } else if (type === "event") {
-        // Mock events data for now
-        const mockEvents: CityEvent[] = [
+      case "event":
+        return [
           {
             id: "event-1",
-            title: `${searchCity} Symphony Orchestra`,
+            title: `${city} Symphony Orchestra`,
             type: "event",
             time: "19:30",
-            location: `${searchCity} Symphony Hall`,
+            location: `${city} Symphony Hall`,
             details: "Classical Concert",
             passengers: 2100,
           },
@@ -196,7 +189,7 @@ const CityInfo = () => {
             title: "Premier League Match",
             type: "event",
             time: "15:00",
-            location: `${searchCity} Stadium`,
+            location: `${city} Stadium`,
             details: "Football Match",
             passengers: 42000,
           },
@@ -205,7 +198,7 @@ const CityInfo = () => {
             title: "Tech Conference 2024",
             type: "event",
             time: "09:00",
-            location: `${searchCity} Convention Centre`,
+            location: `${city} Convention Centre`,
             details: "Technology Summit",
             passengers: 5000,
           },
@@ -214,22 +207,22 @@ const CityInfo = () => {
             title: "West End Musical",
             type: "event",
             time: "20:00",
-            location: `${searchCity} Theatre Royal`,
+            location: `${city} Theatre Royal`,
             details: "Musical Performance",
             passengers: 1800,
           },
+          {
+            id: "event-5",
+            title: "Food & Wine Festival",
+            type: "event",
+            time: "12:00",
+            location: `${city} Exhibition Centre`,
+            details: "Culinary Event",
+            passengers: 3500,
+          },
         ];
-        setTransportData(prev => ({ ...prev, events: mockEvents }));
-      }
-    } catch (error) {
-      console.error(`${type} API error:`, error);
-      toast({
-        title: "Error",
-        description: `Failed to fetch ${type} data`,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
+      default:
+        return [];
     }
   };
 
@@ -257,20 +250,40 @@ const CityInfo = () => {
     return Object.values(counts).sort((a, b) => a.hour.localeCompare(b.hour));
   }, [arrivals]);
 
-  const cities = Object.keys(cityConfig);
+  const cities = ["Birmingham", "Manchester", "Liverpool"];
 
-  // Fetch data when city or tab changes
+  // Load demo data when city or tab changes
+  useEffect(() => {
+    setLoading(true);
+    
+    // Simulate loading delay for better UX
+    const loadData = setTimeout(() => {
+      if (activeTab === "flights") {
+        setArrivals(getDemoData(searchCity, "flight"));
+      } else if (activeTab === "trains") {
+        setTransportData(prev => ({ ...prev, trains: getDemoData(searchCity, "train") }));
+      } else if (activeTab === "buses") {
+        setTransportData(prev => ({ ...prev, buses: getDemoData(searchCity, "bus") }));
+      } else if (activeTab === "events") {
+        setTransportData(prev => ({ ...prev, events: getDemoData(searchCity, "event") }));
+      }
+      setLoading(false);
+    }, 500);
+
+    return () => clearTimeout(loadData);
+  }, [searchCity, activeTab]);
+
+  // Initialize with demo data on component mount
   useEffect(() => {
     if (activeTab === "flights") {
-      fetchFlightData();
-    } else if (activeTab === "trains") {
-      fetchTransportData("train");
-    } else if (activeTab === "buses") {
-      fetchTransportData("bus");
-    } else if (activeTab === "events") {
-      fetchTransportData("event");
+      setArrivals(getDemoData(searchCity, "flight"));
     }
-  }, [searchCity, activeTab]);
+    setTransportData({
+      trains: getDemoData(searchCity, "train"),
+      buses: getDemoData(searchCity, "bus"),
+      events: getDemoData(searchCity, "event"),
+    });
+  }, []);
 
   const getIcon = (type: string) => {
     switch (type) {
