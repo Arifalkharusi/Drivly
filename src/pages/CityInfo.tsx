@@ -44,20 +44,8 @@ interface HourlyCount {
 
 const CityInfo = () => {
   const [searchCity, setSearchCity] = useState("Birmingham");
-  const [activeTab, setActiveTab] = useState("flights");
-  const [loading, setLoading] = useState(false);
   
-  const [transportData, setTransportData] = useState<
-    Record<string, CityEvent[]>
-  >({
-    flights: [],
-    trains: [],
-    buses: [],
-    events: [],
-  });
-  const { toast } = useToast();
-
-  // UK cities with their transport hubs
+  // UK cities with their transport hubs - moved to top to fix initialization error
   const cityConfig = {
     Birmingham: {
       iata: "BHX",
@@ -79,23 +67,85 @@ const CityInfo = () => {
     },
   };
 
+  const [activeTab, setActiveTab] = useState("flights");
+  const [loading, setLoading] = useState(false);
+  const [arrivals, setArrivals] = useState<any[]>([]);
+  
+  const [transportData, setTransportData] = useState<
+    Record<string, CityEvent[]>
+  >({
+    flights: [],
+    trains: [],
+    buses: [],
+    events: [],
+  });
+  const { toast } = useToast();
+
+  // Helper function for API calls
+  const getCurrentAndFutureTime = () => {
+    const now = new Date();
+    const future = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours later
+    
+    const formatDate = (date: Date) => {
+      return date.toISOString().split('T')[0];
+    };
+    
+    return {
+      current: formatDate(now),
+      future: formatDate(future)
+    };
+  };
+
+  // Fetch flight arrivals data
+  useEffect(() => {
+    const fetchArrivals = async (city: string) => {
+      const config = cityConfig[city as keyof typeof cityConfig];
+      if (!config) return;
+      
+      const headers = {
+        "X-RapidAPI-Key": "8301f8c387msh12139157bfaee9bp116ab6jsn0633ba721fa9",
+        "X-RapidAPI-Host": "aerodatabox.p.rapidapi.com",
+      };
+
+      const times = getCurrentAndFutureTime();
+      
+      const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/${config.iata}/${times.current}/${times.future}?withLeg=true&direction=Both&withCancelled=true&withCodeshared=true&withCargo=true&withPrivate=true&withLocation=false`;
+
+      try {
+        const response = await fetch(url, { headers });
+        const data = await response.json();
+        const filtered = data.arrivals?.filter((arrival: any) => {
+          return (
+            arrival.movement?.airport?.iata === config.iata &&
+            arrival.isCargo === false
+          );
+        });
+        console.log(`Filtered arrivals for ${city}:`, filtered);
+        setArrivals(filtered);
+      } catch (err) {
+        console.error("Failed to fetch arrivals:", err);
+        setArrivals([]);
+      }
+    };
+
+    fetchArrivals(searchCity);
+  }, [searchCity]);
+
   // Process flight data into hourly counts
   const flightData = useMemo(() => {
     const counts: Record<number, { count: number; locations: Set<string> }> = {};
 
-    transportData.flights.forEach((flight) => {
-      if (!flight.time) return;
+    arrivals.forEach((arrival) => {
+      if (!arrival.arrival?.scheduledTime?.local) return;
       
-      // Parse time string (e.g., 'HH:MM')
-      const [hourStr] = flight.time.split(':');
-      const hour = parseInt(hourStr, 10);
+      const arrivalTime = new Date(arrival.arrival.scheduledTime.local);
+      const hour = arrivalTime.getHours();
 
       if (!counts[hour]) {
-        counts[hour] = { count: 0, locations: new Set(), totalPassengers: 0 };
+        counts[hour] = { count: 0, locations: new Set() };
       }
       counts[hour].count += 1;
       counts[hour].locations.add(cityConfig[searchCity as keyof typeof cityConfig]?.iata || searchCity);
-      counts[hour].totalPassengers += flight.passengers || 0;
     });
 
     return Object.entries(counts)
@@ -106,14 +156,13 @@ const CityInfo = () => {
           .padStart(2, "0")}:00`,
         count: data.count,
         locations: Array.from(data.locations),
-        totalPassengers: data.totalPassengers,
+        totalPassengers: 0,
       }));
-  }, [transportData.flights, searchCity]);
+  }, [arrivals, searchCity]);
 
   const cities = Object.keys(cityConfig);
 
-  // Fetch transport data when city changes
-  // Fetch real transport data via Supabase edge functions
+  // Keep the original Supabase edge function calls for other transport data
   const fetchTransportData = async (city: string) => {
     setLoading(true);
     console.log(`Fetching real transport data for ${city} via Supabase...`);
@@ -128,32 +177,6 @@ const CityInfo = () => {
       const currentTime = new Date()
         .toLocaleTimeString("en-GB", { hour12: false })
         .substring(0, 5);
-
-      // Fetch flight data via Supabase edge function
-      let flightData = { flights: [] };
-      try {
-        console.log(`Fetching flights for ${config.iata}...`);
-        const flightResponse = await fetch("http://localhost:54321/functions/v1/get-flight-data", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            iataCode: config.iata,
-            date: today,
-          }),
-        });
-
-        if (flightResponse.ok) {
-          const data = await flightResponse.json();
-          flightData = data;
-          console.log(`Found ${flightData.flights.length} flights`);
-        } else {
-          console.error(`Flight API error: ${flightResponse.status}`);
-        }
-      } catch (error) {
-        console.error("Flight API error:", error);
-      }
 
       // Fetch train data via Supabase edge function
       let trainData = { trains: [] };
@@ -248,14 +271,13 @@ const CityInfo = () => {
       };
 
       setTransportData({
-        flights: flightData.flights || [],
+        flights: [], // Flight data comes from the direct API call above
         trains: trainData.trains || [],
         buses: busData.buses || [],
         events: eventsData.events || [],
       });
 
       const hasRealData =
-        flightData.flights.length > 0 ||
         trainData.trains.length > 0 ||
         busData.buses.length > 0;
 
@@ -270,7 +292,7 @@ const CityInfo = () => {
       });
 
       console.log("Final transport data:", {
-        flights: flightData.flights?.length || 0,
+        flights: flightData?.length || 0,
         trains: trainData.trains?.length || 0,
         buses: busData.buses?.length || 0,
         events: eventsData.events?.length || 0,
@@ -295,6 +317,7 @@ const CityInfo = () => {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchTransportData(searchCity);
   }, [searchCity]);
