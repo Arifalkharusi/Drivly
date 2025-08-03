@@ -38,6 +38,7 @@ import {
   Trash2,
   Edit3,
 } from "lucide-react";
+import { PoundSterling } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -211,7 +212,7 @@ const Earnings = () => {
       case "lyft":
         return <Car className="w-4 h-4" />;
       default:
-        return <DollarSign className="w-4 h-4" />;
+        return <PoundSterling className="w-4 h-4" />;
     }
   };
 
@@ -229,7 +230,7 @@ const Earnings = () => {
             </p>
           </div>
           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center ml-3 flex-shrink-0">
-            <DollarSign className="w-5 h-5 sm:w-6 sm:h-6" />
+            <PoundSterling className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
         </div>
 

@@ -3,6 +3,7 @@ import { Progress } from "@/components/ui/progress";
 import GradientCard from "@/components/GradientCard";
 import MobileNavigation from "@/components/MobileNavigation";
 import { TrendingUp, TrendingDown, Target, DollarSign, BarChart3, Activity } from "lucide-react";
+import { PoundSterling } from "lucide-react";
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const Dashboard = () => {
@@ -55,7 +56,7 @@ const Dashboard = () => {
               </p>
             </div>
             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-2xl flex items-center justify-center ml-3 flex-shrink-0">
-              <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              <PoundSterling className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
             </div>
           </div>
           
