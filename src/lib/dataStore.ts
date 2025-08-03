@@ -81,7 +81,7 @@ class DataStore {
       date: new Date(Date.now() - 2 * 60 * 60 * 1000),
       type: "mileage",
       miles: 45,
-      costPerMile: 0.545,
+      costPerMile: 0.45,
     },
   ];
 

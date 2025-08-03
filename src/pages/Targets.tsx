@@ -300,7 +300,7 @@ const Targets = () => {
                         <>
                           <div className="bg-primary/5 border border-primary/10 rounded-xl p-3 text-center">
                             <div className="text-xs text-muted-foreground mb-1">Today's Earnings</div>
-                            <div className="font-bold text-base text-primary">${target.current.toFixed(2)}</div>
+                            <div className="font-bold text-base text-primary">£{target.current.toFixed(2)}</div>
                           </div>
                           <div className="bg-muted/30 rounded-xl p-3 text-center">
                             <div className="text-xs text-muted-foreground mb-1">Completion</div>
