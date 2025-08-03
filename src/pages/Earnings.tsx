@@ -402,7 +402,7 @@ const Earnings = () => {
             <div className="text-center">
               <p className="text-white/80 text-xs sm:text-sm">Total</p>
               <p className="text-lg sm:text-xl font-bold text-white">
-                £{totalEarnings.toFixed(2)}
+                ${totalEarnings.toFixed(2)}
               </p>
             </div>
             <div className="text-center">
@@ -511,7 +511,7 @@ const Earnings = () => {
                           {platform}
                         </Badge>
                         <span className="text-xs sm:text-sm text-muted-foreground">
-                          ${platformTotal.toFixed(2)} total
+                          £{platformTotal.toFixed(2)} total
                         </span>
                       </div>
                       <div className="flex items-center gap-3 sm:gap-4 text-xs text-muted-foreground">
