@@ -34,6 +34,7 @@ import {
   Clock,
   Users,
   TrendingUp,
+  TrendingDown,
   Calendar as CalendarIcon,
   Trash2,
   Edit3,
@@ -373,34 +374,124 @@ const Finance = () => {
   return (
     <div className="min-h-screen bg-gradient-background pb-20">
       {/* Header */}
-      <div className="bg-gradient-primary text-white p-4 sm:p-6 pb-6 sm:pb-8">
-        <div className="flex justify-between items-start sm:items-center mb-4 sm:mb-6">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold text-white truncate">Finance</h1>
-            <p className="text-white/90 text-sm sm:text-base mt-1">Track your earnings and expenses</p>
+      <div className="relative overflow-hidden">
+        {/* Background with gradient and pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.03"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-40"></div>
+        </div>
+        
+        <div className="relative z-10 p-4 sm:p-6 pb-8 sm:pb-12">
+          {/* Header Section */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
+                  <PoundSterling className="w-7 h-7 text-white" />
+                </div>
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Finance Hub</h1>
+                <p className="text-white/70 text-sm sm:text-base">Manage your financial journey</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-white/90 text-sm font-medium">Live</span>
+              </div>
+            </div>
           </div>
-          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center ml-3 flex-shrink-0">
-            <PoundSterling className="w-5 h-5 sm:w-6 sm:h-6" />
+
+          {/* Modern Finance Overview Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            {/* Earnings Card */}
+            <div className="group relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-green-600 rounded-2xl blur-sm opacity-20 group-hover:opacity-30 transition-opacity"></div>
+              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 hover:bg-white/15 transition-all duration-300">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-emerald-400 font-medium">+12.5%</div>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-white/70 text-sm font-medium">Total Earnings</p>
+                  <p className="text-2xl font-bold text-white">£{totalEarnings.toFixed(2)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Expenses Card */}
+            <div className="group relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-600 rounded-2xl blur-sm opacity-20 group-hover:opacity-30 transition-opacity"></div>
+              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 hover:bg-white/15 transition-all duration-300">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center">
+                    <TrendingDown className="w-5 h-5 text-red-400" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-red-400 font-medium">-8.2%</div>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-white/70 text-sm font-medium">Total Expenses</p>
+                  <p className="text-2xl font-bold text-white">£{totalExpenses.toFixed(2)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Net Income Card */}
+            <div className="group relative sm:col-span-1 col-span-1">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl blur-sm opacity-20 group-hover:opacity-30 transition-opacity"></div>
+              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 hover:bg-white/15 transition-all duration-300">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                    <PoundSterling className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-blue-400 font-medium">Net</div>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-white/70 text-sm font-medium">Net Income</p>
+                  <p className={`text-2xl font-bold ${(totalEarnings - totalExpenses) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    £{(totalEarnings - totalExpenses).toFixed(2)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Stats Bar */}
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="text-center">
+                <div className="text-lg font-bold text-white">{filteredEarnings.length}</div>
+                <div className="text-xs text-white/60">Earnings</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-white">{filteredExpenses.length}</div>
+                <div className="text-xs text-white/60">Expenses</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-white">
+                  {filteredEarnings.reduce((sum, e) => sum + e.trips, 0)}
+                </div>
+                <div className="text-xs text-white/60">Total Trips</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-white">
+                  {filteredEarnings.reduce((sum, e) => sum + e.hours, 0).toFixed(1)}h
+                </div>
+                <div className="text-xs text-white/60">Hours</div>
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Finance Overview */}
-        <GradientCard variant="card" className="bg-white/10 backdrop-blur-sm border-white/20">
-          <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4">
-            <div className="text-center">
-              <p className="text-white/80 text-xs sm:text-sm">Earnings</p>
-              <p className="text-lg sm:text-xl font-bold text-success">£{totalEarnings.toFixed(2)}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-white/80 text-xs sm:text-sm">Expenses</p>
-              <p className="text-lg sm:text-xl font-bold text-destructive">£{totalExpenses.toFixed(2)}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-white/80 text-xs sm:text-sm">Net</p>
-              <p className="text-lg sm:text-xl font-bold text-white">£{(totalEarnings - totalExpenses).toFixed(2)}</p>
-            </div>
-          </div>
-        </GradientCard>
       </div>
 
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 mt-4 sm:mt-6">
