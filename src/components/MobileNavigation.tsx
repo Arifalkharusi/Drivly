@@ -1,11 +1,10 @@
 import { NavLink } from "react-router-dom";
-import { Home, DollarSign, CreditCard, Target, MapPin } from "lucide-react";
+import { Home, PoundSterling, Target, MapPin } from "lucide-react";
 
 const MobileNavigation = () => {
   const navItems = [
     { to: "/dashboard", icon: Home, label: "Home" },
-    { to: "/earnings", icon: DollarSign, label: "Earnings" },
-    { to: "/expenses", icon: CreditCard, label: "Expenses" },
+    { to: "/finance", icon: PoundSterling, label: "Finance" },
     { to: "/targets", icon: Target, label: "Targets" },
     { to: "/city-info", icon: MapPin, label: "City" },
   ];
