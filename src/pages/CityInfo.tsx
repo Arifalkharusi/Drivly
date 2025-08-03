@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -46,9 +46,8 @@ const CityInfo = () => {
   const [searchCity, setSearchCity] = useState("Birmingham");
   const [activeTab, setActiveTab] = useState("flights");
   const [loading, setLoading] = useState(false);
-  const [arrivals, setArrivals] = useState([]);
-  const [flightData, setFlightData] = useState([]);
-
+  const [arrivals, setArrivals] = useState<any[]>([]);
+  
   const [transportData, setTransportData] = useState<
     Record<string, CityEvent[]>
   >({
@@ -58,6 +57,37 @@ const CityInfo = () => {
     events: [],
   });
   const { toast } = useToast();
+
+  // Process flight data into hourly counts
+  const flightData = useMemo(() => {
+    const counts: Record<number, { count: number; locations: Set<string> }> = {};
+
+    arrivals.forEach((flight) => {
+      const utc = flight?.arrival?.scheduledTime?.local;
+      if (!utc) return;
+      
+      // Convert to Date and get hour
+      const date = new Date(utc.replace(" ", "T"));
+      const hour = date.getUTCHours();
+
+      if (!counts[hour]) {
+        counts[hour] = { count: 0, locations: new Set() };
+      }
+      counts[hour].count += 1;
+      counts[hour].locations.add(cityConfig[searchCity as keyof typeof cityConfig]?.iata || searchCity);
+    });
+
+    return Object.entries(counts)
+      .sort((a, b) => Number(a[0]) - Number(b[0]))
+      .map(([hour, data]) => ({
+        hour: `${hour.padStart(2, "0")}:00 - ${(Number(hour) + 1)
+          .toString()
+          .padStart(2, "0")}:00`,
+        count: data.count,
+        locations: Array.from(data.locations),
+        totalPassengers: 0,
+      }));
+  }, [arrivals, searchCity]);
 
   function getCurrentAndFutureTime() {
     const pad = (n) => n.toString().padStart(2, "0");
@@ -79,18 +109,21 @@ const CityInfo = () => {
       future: format(future),
     };
   }
-
-  const times = getCurrentAndFutureTime();
-  console.log("Current and Future Times:", times);
-
+  
+  // Fetch flight arrivals data
   useEffect(() => {
-    const fetchArrivals = async () => {
+    const fetchArrivals = async (city: string) => {
+      const config = cityConfig[city as keyof typeof cityConfig];
+      if (!config) return;
+      
       const headers = {
         "X-RapidAPI-Key": "8301f8c387msh12139157bfaee9bp116ab6jsn0633ba721fa9",
         "X-RapidAPI-Host": "aerodatabox.p.rapidapi.com",
       };
 
-      const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/BHX/${times.current}/${times.future}?withLeg=true&direction=Both&withCancelled=true&withCodeshared=true&withCargo=true&withPrivate=true&withLocation=false`;
+      const times = getCurrentAndFutureTime();
+      
+      const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/${config.iata}/${times.current}/${times.future}?withLeg=true&direction=Both&withCancelled=true&withCodeshared=true&withCargo=true&withPrivate=true&withLocation=false`;
 
       try {
         const response = await fetch(url, { headers });
@@ -102,47 +135,16 @@ const CityInfo = () => {
             arrival.isCargo === false
           );
         });
-        console.log(filtered);
-        setArrivals(filtered); // ✅ This is what was missing
+        console.log(`Filtered arrivals for ${city}:`, filtered);
+        setArrivals(filtered);
       } catch (err) {
-        // setError(err.message);
         console.error("Failed to fetch arrivals:", err);
+        setArrivals([]);
       }
     };
 
-    fetchArrivals();
-  }, []);
-
-  useEffect(() => {
-    const counts: Record<number, number> = {};
-
-    arrivals.forEach((flight) => {
-      const utc = flight?.arrival?.scheduledTime?.local;
-
-      if (!utc) return;
-      // Convert to Date and get hour
-      const date = new Date(utc.replace(" ", "T")); // Fix for "2025-08-09 09:35Z"
-      const hour = date.getUTCHours();
-
-      counts[hour] = (counts[hour] || 0) + 1;
-    });
-
-    const result = Object.entries(counts)
-      .sort((a, b) => Number(a[0]) - Number(b[0]))
-      .map(([hour, count]) => ({
-        hour: `${hour.padStart(2, "0")}:00 - ${(Number(hour) + 1)
-          .toString()
-          .padStart(2, "0")}:00`,
-        count,
-        locations: ["BHX"],
-        totalPassengers: "0",
-      }));
-
-    setFlightData(result);
-    console.log(result);
-  }, [arrivals]);
-
-  // console.log("groupFlightsByHour", groupFlightsByHour(arrivals));
+    fetchArrivals(searchCity);
+  }, [searchCity]);
 
   // UK cities with their transport hubs
   const cityConfig = {
@@ -168,6 +170,7 @@ const CityInfo = () => {
 
   const cities = Object.keys(cityConfig);
 
+  // Fetch transport data when city changes
   // Fetch real transport data via Supabase edge functions
   const fetchTransportData = async (city: string) => {
     setLoading(true);
@@ -359,7 +362,6 @@ const CityInfo = () => {
       setLoading(false);
     }
   };
-  // Fetch data when city changes
   useEffect(() => {
     fetchTransportData(searchCity);
   }, [searchCity]);
@@ -397,39 +399,6 @@ const CityInfo = () => {
   const formatTime = (time: string) => {
     return time;
   };
-
-  // Function to group transport data by hour
-  // const groupByHour = (data: CityEvent[]): HourlyCount[] => {
-  //   const hourlyMap = new Map<string, HourlyCount>();
-
-  //   data.forEach((item) => {
-  //     const hour = item.time.split(":")[0]; // Extract hour from time (e.g., "14" from "14:30")
-  //     const hourRange = `${hour}:00 - ${hour}:59`;
-
-  //     if (!hourlyMap.has(hourRange)) {
-  //       hourlyMap.set(hourRange, {
-  //         hourLabel: hourRange,
-  //         count: 0,
-  //         locations: [],
-  //         totalPassengers: 0,
-  //       });
-  //     }
-
-  //     const existing = hourlyMap.get(hourRange)!;
-  //     existing.count += 1;
-  //     existing.totalPassengers += item.passengers || 0;
-
-  //     // Add unique locations
-  //     const locationShort = item.location.split(" ")[0]; // Get first word of location
-  //     if (!existing.locations.includes(locationShort)) {
-  //       existing.locations.push(locationShort);
-  //     }
-  //   });
-
-  //   return Array.from(hourlyMap.values()).sort((a, b) =>
-  //     a.hourLabel.localeCompare(b.hourLabel)
-  //   );
-  // };
 
   const tabData = [
     {
@@ -620,7 +589,7 @@ const CityInfo = () => {
                               <div className="text-right">
                                 <div className="flex items-center gap-1 text-sm font-medium mb-1">
                                   <Clock className="w-4 h-4" />
-                                  {hourlyData.hourLabel}
+                                  {hourlyData.hour}
                                 </div>
                                 <p className="text-2xl font-bold text-primary">
                                   {hourlyData.count}
