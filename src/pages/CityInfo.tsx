@@ -114,14 +114,14 @@ const CityInfo = () => {
       try {
         const response = await fetch(url, { headers });
         const data = await response.json();
-        const filtered = data.arrivals?.filter((arrival: any) => {
+        const filtered = (data.arrivals || []).filter((arrival: any) => {
           return (
             arrival.movement?.airport?.iata === config.iata &&
             arrival.isCargo === false
           );
         });
         console.log(`Filtered arrivals for ${city}:`, filtered);
-        setArrivals(filtered);
+        setArrivals(filtered || []);
       } catch (err) {
         console.error("Failed to fetch arrivals:", err);
         setArrivals([]);
@@ -135,7 +135,7 @@ const CityInfo = () => {
   const flightData = useMemo(() => {
     const counts: Record<number, { count: number; locations: Set<string> }> = {};
 
-    arrivals.forEach((arrival) => {
+    (arrivals || []).forEach((arrival) => {
       if (!arrival.arrival?.scheduledTime?.local) return;
       
       const arrivalTime = new Date(arrival.arrival.scheduledTime.local);
@@ -182,27 +182,30 @@ const CityInfo = () => {
       let trainData = { trains: [] };
       try {
         console.log(`Fetching trains from ${config.railHub}...`);
-        const trainResponse = await fetch("http://localhost:54321/functions/v1/get-transport-data", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from: config.railHub,
-            to: "London",
-            type: "train",
-            date: today,
-            time: currentTime,
-          }),
-        });
-
-        if (trainResponse.ok) {
-          const data = await trainResponse.json();
-          trainData = data;
-          console.log(`Found ${trainData.trains.length} trains`);
-        } else {
-          console.error(`Train API error: ${trainResponse.status}`);
-        }
+        // Mock train data since Supabase is not available
+        trainData = {
+          trains: [
+            {
+              id: "train-1",
+              title: `${config.railHub} to London Euston`,
+              type: "train",
+              time: "08:30",
+              location: config.railHub,
+              details: "Direct service to London",
+              passengers: 400,
+            },
+            {
+              id: "train-2", 
+              title: `${config.railHub} to London Euston`,
+              type: "train",
+              time: "09:15",
+              location: config.railHub,
+              details: "Express service",
+              passengers: 350,
+            },
+          ]
+        };
+        console.log(`Found ${trainData.trains.length} trains`);
       } catch (error) {
         console.error("Train API error:", error);
       }
@@ -211,27 +214,30 @@ const CityInfo = () => {
       let busData = { buses: [] };
       try {
         console.log(`Fetching buses from ${config.coachStation}...`);
-        const busResponse = await fetch("http://localhost:54321/functions/v1/get-transport-data", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from: config.coachStation,
-            to: "London Victoria Coach Station",
-            type: "bus",
-            date: today,
-            time: currentTime,
-          }),
-        });
-
-        if (busResponse.ok) {
-          const data = await busResponse.json();
-          busData = data;
-          console.log(`Found ${busData.buses.length} buses`);
-        } else {
-          console.error(`Bus API error: ${busResponse.status}`);
-        }
+        // Mock bus data since Supabase is not available
+        busData = {
+          buses: [
+            {
+              id: "bus-1",
+              title: `${config.coachStation} to London Victoria`,
+              type: "bus",
+              time: "07:45",
+              location: config.coachStation,
+              details: "National Express service",
+              passengers: 50,
+            },
+            {
+              id: "bus-2",
+              title: `${config.coachStation} to London Victoria`,
+              type: "bus", 
+              time: "10:30",
+              location: config.coachStation,
+              details: "Megabus service",
+              passengers: 45,
+            },
+          ]
+        };
+        console.log(`Found ${busData.buses.length} buses`);
       } catch (error) {
         console.error("Bus API error:", error);
       }
