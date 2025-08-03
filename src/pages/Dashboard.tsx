@@ -12,6 +12,7 @@ const Dashboard = () => {
     weeklyEarnings,
     weeklyExpenses,
     weeklyData,
+    weeklyHourlyRate,
     totalTrips,
     totalHours,
     expenseBreakdown,
@@ -92,8 +93,8 @@ const Dashboard = () => {
               <p className="text-sm sm:text-lg font-semibold text-white">${(weeklyProgress / 7).toFixed(2)}</p>
             </div>
             <div className="text-center">
-              <p className="text-white/60 text-xs mb-1">Distance</p>
-              <p className="text-sm sm:text-lg font-semibold text-white">892 mi</p>
+              <p className="text-white/60 text-xs mb-1">Per Hour</p>
+              <p className="text-sm sm:text-lg font-semibold text-white">${weeklyHourlyRate.toFixed(2)}/h</p>
             </div>
           </div>
         </GradientCard>

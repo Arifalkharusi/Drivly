@@ -31,6 +31,7 @@ export const useDataStore = () => {
     weeklyEarnings: dataStore.getWeeklyEarnings(),
     weeklyExpenses: dataStore.getWeeklyExpenses(),
     weeklyData: dataStore.getWeeklyData(),
+    weeklyHourlyRate: dataStore.getWeeklyHourlyRate(),
     totalTrips: dataStore.getTotalTrips(),
     totalHours: dataStore.getTotalHours(),
     expenseBreakdown: dataStore.getExpenseBreakdown(),

@@ -161,6 +161,21 @@ class DataStore {
       .reduce((sum, e) => sum + e.amount, 0);
   }
 
+  getWeeklyHourlyRate(): number {
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    const weekAgoStr = weekAgo.toISOString().split('T')[0];
+    
+    const weeklyEarnings = this.earnings
+      .filter(e => e.date >= weekAgoStr)
+      .reduce((sum, e) => sum + e.amount, 0);
+    
+    const weeklyHours = this.earnings
+      .filter(e => e.date >= weekAgoStr)
+      .reduce((sum, e) => sum + e.hours, 0);
+    
+    return weeklyHours > 0 ? weeklyEarnings / weeklyHours : 0;
+  }
   getWeeklyData(): Array<{day: string, earnings: number, expenses: number}> {
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const today = new Date();
