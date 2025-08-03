@@ -46,7 +46,6 @@ const CityInfo = () => {
   const [searchCity, setSearchCity] = useState("Birmingham");
   const [activeTab, setActiveTab] = useState("flights");
   const [loading, setLoading] = useState(false);
-  const [arrivals, setArrivals] = useState<any[]>([]);
   
   const [transportData, setTransportData] = useState<
     Record<string, CityEvent[]>
@@ -57,94 +56,6 @@ const CityInfo = () => {
     events: [],
   });
   const { toast } = useToast();
-
-  // Process flight data into hourly counts
-  const flightData = useMemo(() => {
-    const counts: Record<number, { count: number; locations: Set<string> }> = {};
-
-    arrivals.forEach((flight) => {
-      const utc = flight?.arrival?.scheduledTime?.local;
-      if (!utc) return;
-      
-      // Convert to Date and get hour
-      const date = new Date(utc.replace(" ", "T"));
-      const hour = date.getUTCHours();
-
-      if (!counts[hour]) {
-        counts[hour] = { count: 0, locations: new Set() };
-      }
-      counts[hour].count += 1;
-      counts[hour].locations.add(cityConfig[searchCity as keyof typeof cityConfig]?.iata || searchCity);
-    });
-
-    return Object.entries(counts)
-      .sort((a, b) => Number(a[0]) - Number(b[0]))
-      .map(([hour, data]) => ({
-        hour: `${hour.padStart(2, "0")}:00 - ${(Number(hour) + 1)
-          .toString()
-          .padStart(2, "0")}:00`,
-        count: data.count,
-        locations: Array.from(data.locations),
-        totalPassengers: 0,
-      }));
-  }, [arrivals, searchCity]);
-
-  function getCurrentAndFutureTime() {
-    const pad = (n) => n.toString().padStart(2, "0");
-
-    const now = new Date();
-    const future = new Date(now.getTime() + 12 * 60 * 60 * 1000); // add 12 hours
-
-    const format = (date) => {
-      const year = date.getFullYear();
-      const month = pad(date.getMonth() + 1); // months are 0-based
-      const day = pad(date.getDate());
-      const hours = pad(date.getHours());
-      const minutes = pad(date.getMinutes());
-      return `${year}-${month}-${day}T${hours}:${minutes}`;
-    };
-
-    return {
-      current: format(now),
-      future: format(future),
-    };
-  }
-  
-  // Fetch flight arrivals data
-  useEffect(() => {
-    const fetchArrivals = async (city: string) => {
-      const config = cityConfig[city as keyof typeof cityConfig];
-      if (!config) return;
-      
-      const headers = {
-        "X-RapidAPI-Key": "8301f8c387msh12139157bfaee9bp116ab6jsn0633ba721fa9",
-        "X-RapidAPI-Host": "aerodatabox.p.rapidapi.com",
-      };
-
-      const times = getCurrentAndFutureTime();
-      
-      const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/${config.iata}/${times.current}/${times.future}?withLeg=true&direction=Both&withCancelled=true&withCodeshared=true&withCargo=true&withPrivate=true&withLocation=false`;
-
-      try {
-        const response = await fetch(url, { headers });
-        const data = await response.json();
-
-        const filtered = data.arrivals.filter((arrival) => {
-          return (
-            arrival.codeshareStatus === "IsOperator" &&
-            arrival.isCargo === false
-          );
-        });
-        console.log(`Filtered arrivals for ${city}:`, filtered);
-        setArrivals(filtered);
-      } catch (err) {
-        console.error("Failed to fetch arrivals:", err);
-        setArrivals([]);
-      }
-    };
-
-    fetchArrivals(searchCity);
-  }, [searchCity]);
 
   // UK cities with their transport hubs
   const cityConfig = {
@@ -167,6 +78,37 @@ const CityInfo = () => {
       airportName: "Liverpool John Lennon Airport",
     },
   };
+
+  // Process flight data into hourly counts
+  const flightData = useMemo(() => {
+    const counts: Record<number, { count: number; locations: Set<string> }> = {};
+
+    transportData.flights.forEach((flight) => {
+      if (!flight.time) return;
+      
+      // Parse time string (e.g., 'HH:MM')
+      const [hourStr] = flight.time.split(':');
+      const hour = parseInt(hourStr, 10);
+
+      if (!counts[hour]) {
+        counts[hour] = { count: 0, locations: new Set(), totalPassengers: 0 };
+      }
+      counts[hour].count += 1;
+      counts[hour].locations.add(cityConfig[searchCity as keyof typeof cityConfig]?.iata || searchCity);
+      counts[hour].totalPassengers += flight.passengers || 0;
+    });
+
+    return Object.entries(counts)
+      .sort((a, b) => Number(a[0]) - Number(b[0]))
+      .map(([hour, data]) => ({
+        hour: `${hour.padStart(2, "0")}:00 - ${(Number(hour) + 1)
+          .toString()
+          .padStart(2, "0")}:00`,
+        count: data.count,
+        locations: Array.from(data.locations),
+        totalPassengers: data.totalPassengers,
+      }));
+  }, [transportData.flights, searchCity]);
 
   const cities = Object.keys(cityConfig);
 
@@ -191,17 +133,14 @@ const CityInfo = () => {
       let flightData = { flights: [] };
       try {
         console.log(`Fetching flights for ${config.iata}...`);
-        const flightResponse = await fetch("/api/v1/rest/rpc/invoke", {
+        const flightResponse = await fetch("http://localhost:54321/functions/v1/get-flight-data", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            function_name: "get-flight-data",
-            args: {
-              iataCode: config.iata,
-              date: today,
-            },
+            iataCode: config.iata,
+            date: today,
           }),
         });
 
@@ -220,20 +159,17 @@ const CityInfo = () => {
       let trainData = { trains: [] };
       try {
         console.log(`Fetching trains from ${config.railHub}...`);
-        const trainResponse = await fetch("/api/v1/rest/rpc/invoke", {
+        const trainResponse = await fetch("http://localhost:54321/functions/v1/get-transport-data", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            function_name: "get-transport-data",
-            args: {
-              from: config.railHub,
-              to: "London",
-              type: "train",
-              date: today,
-              time: currentTime,
-            },
+            from: config.railHub,
+            to: "London",
+            type: "train",
+            date: today,
+            time: currentTime,
           }),
         });
 
@@ -252,20 +188,17 @@ const CityInfo = () => {
       let busData = { buses: [] };
       try {
         console.log(`Fetching buses from ${config.coachStation}...`);
-        const busResponse = await fetch("/api/v1/rest/rpc/invoke", {
+        const busResponse = await fetch("http://localhost:54321/functions/v1/get-transport-data", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            function_name: "get-transport-data",
-            args: {
-              from: config.coachStation,
-              to: "London Victoria Coach Station",
-              type: "bus",
-              date: today,
-              time: currentTime,
-            },
+            from: config.coachStation,
+            to: "London Victoria Coach Station",
+            type: "bus",
+            date: today,
+            time: currentTime,
           }),
         });
 
@@ -563,9 +496,9 @@ const CityInfo = () => {
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
                                   <Badge
-                                    className={getTypeColor(tab.data[0].type)}
+                                    className={getTypeColor(tab.id)}
                                   >
-                                    {getIcon(tab.data[0].type)}
+                                    {getIcon(tab.id)}
                                     <span className="ml-1 capitalize">
                                       {tab.label}
                                     </span>
