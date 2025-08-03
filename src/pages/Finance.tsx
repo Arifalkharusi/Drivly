@@ -3,358 +3,197 @@ import { useDataStore } from "@/hooks/useDataStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GradientCard from "@/components/GradientCard";
 import MobileNavigation from "@/components/MobileNavigation";
-import {
-  Plus,
-  Car,
-  Clock,
-  Users,
-  TrendingUp,
-  TrendingDown,
-  Calendar as CalendarIcon,
+import { 
+  PoundSterling, 
+  Plus, 
+  TrendingUp, 
+  TrendingDown, 
+  Edit3, 
   Trash2,
-  Edit3,
+  Car,
   Fuel,
   Wrench,
   Receipt,
-  Calculator,
+  Calendar,
+  Clock,
+  Activity
 } from "lucide-react";
-import { PoundSterling } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import type { DateRange } from "react-day-picker";
 import type { Earning, Expense } from "@/lib/dataStore";
 
 const Finance = () => {
   const { toast } = useToast();
-  const { 
-    earnings, 
-    addEarning, 
-    updateEarning, 
+  const {
+    earnings,
+    expenses,
+    addEarning,
+    addExpense,
+    updateEarning,
+    updateExpense,
     deleteEarning,
-    expenses, 
-    addExpense, 
-    updateExpense, 
-    deleteExpense 
+    deleteExpense,
+    todayEarnings,
+    todayExpenses,
+    weeklyEarnings,
+    weeklyExpenses,
   } = useDataStore();
 
-  const [activeTab, setActiveTab] = useState("earnings");
-  const [customPlatforms, setCustomPlatforms] = useState<string[]>(["Lyft"]);
-  const [customCategories, setCustomCategories] = useState<string[]>(["Parking", "Tolls"]);
-  
-  // Filter states
-  const [selectedPlatform, setSelectedPlatform] = useState<string>("all");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  
-  // Earnings state
-  const [isEarningsDialogOpen, setIsEarningsDialogOpen] = useState(false);
-  const [isEarningsDeleteDialogOpen, setIsEarningsDeleteDialogOpen] = useState(false);
-  const [earningToDelete, setEarningToDelete] = useState<string | null>(null);
+  const [isEarningDialogOpen, setIsEarningDialogOpen] = useState(false);
+  const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [editingEarning, setEditingEarning] = useState<Earning | null>(null);
-  const [earningsFormData, setEarningsFormData] = useState({
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+
+  const [earningForm, setEarningForm] = useState({
     amount: "",
     platform: "",
-    customPlatform: "",
     trips: "",
     hours: "",
-    date: new Date().toISOString().split("T")[0],
+    date: new Date().toISOString().split('T')[0],
   });
 
-  // Expenses state
-  const [isExpensesDialogOpen, setIsExpensesDialogOpen] = useState(false);
-  const [isExpensesDeleteDialogOpen, setIsExpensesDeleteDialogOpen] = useState(false);
-  const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
-  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [expenseType, setExpenseType] = useState<"manual" | "mileage">("manual");
-  const [newExpense, setNewExpense] = useState({
+  const [expenseForm, setExpenseForm] = useState({
     amount: "",
     category: "",
-    customCategory: "",
     description: "",
+    date: new Date(),
+    type: "manual" as "manual" | "mileage",
     miles: "",
     costPerMile: "0.45",
   });
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(new Date().setDate(new Date().getDate() - 30)),
-    to: new Date(),
-  });
+  const netIncome = weeklyEarnings - weeklyExpenses;
+  const todayNet = todayEarnings - todayExpenses;
 
-  const defaultPlatforms = ["Uber", "Bolt"];
-  const allPlatforms = [...defaultPlatforms, ...customPlatforms];
-  const defaultCategories = ["Fuel", "Maintenance", "Insurance", "Other"];
-  const allCategories = [...defaultCategories, ...customCategories];
-
-  // Filter data by date range
-  const filteredEarnings = earnings.filter((earning) => {
-    if (!dateRange?.from || !dateRange?.to) return true;
-    const earningDate = new Date(earning.date);
-    return earningDate >= dateRange.from && earningDate <= dateRange.to;
-  });
-
-  const filteredExpenses = expenses.filter((expense) => {
-    if (!dateRange?.from || !dateRange?.to) return true;
-    const expenseDate = new Date(expense.date);
-    return expenseDate >= dateRange.from && expenseDate <= dateRange.to;
-  });
-
-  // Apply platform/category filters
-  const platformFilteredEarnings = selectedPlatform === "all" 
-    ? filteredEarnings 
-    : filteredEarnings.filter(earning => earning.platform === selectedPlatform);
-
-  const categoryFilteredExpenses = selectedCategory === "all"
-    ? filteredExpenses
-    : filteredExpenses.filter(expense => expense.category === selectedCategory);
-
-  // Get unique platforms and categories from data
-  const availablePlatforms = [...new Set(earnings.map(e => e.platform))];
-  const availableCategories = [...new Set(expenses.map(e => e.category))];
-  const totalEarnings = filteredEarnings.reduce((sum, earning) => sum + earning.amount, 0);
-  const totalExpenses = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
-
-  // Earnings functions
-  const handleSaveEarning = () => {
-    if (!earningsFormData.amount || !earningsFormData.platform || !earningsFormData.trips || !earningsFormData.hours) {
+  const handleAddEarning = () => {
+    if (!earningForm.amount || !earningForm.platform) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: "Please fill in all required fields",
         variant: "destructive",
       });
       return;
     }
 
-    let selectedPlatform = earningsFormData.platform;
-    if (earningsFormData.platform === "custom" && earningsFormData.customPlatform) {
-      selectedPlatform = earningsFormData.customPlatform;
-      if (!customPlatforms.includes(earningsFormData.customPlatform)) {
-        setCustomPlatforms([...customPlatforms, earningsFormData.customPlatform]);
-      }
-    }
-
-    const earningData = {
+    const earning: Earning = {
       id: editingEarning?.id || Date.now().toString(),
-      amount: parseFloat(earningsFormData.amount),
-      platform: selectedPlatform,
-      trips: parseInt(earningsFormData.trips),
-      hours: parseFloat(earningsFormData.hours),
-      date: earningsFormData.date,
+      amount: parseFloat(earningForm.amount),
+      platform: earningForm.platform,
+      trips: parseInt(earningForm.trips) || 0,
+      hours: parseFloat(earningForm.hours) || 0,
+      date: earningForm.date,
     };
 
     if (editingEarning) {
-      updateEarning(earningData);
+      updateEarning(earning);
+      toast({
+        title: "Earning Updated",
+        description: `Updated earning of £${earning.amount} from ${earning.platform}`,
+      });
     } else {
-      addEarning(earningData);
+      addEarning(earning);
+      toast({
+        title: "Earning Added",
+        description: `Added earning of £${earning.amount} from ${earning.platform}`,
+      });
     }
 
-    setEarningsFormData({
+    resetEarningForm();
+  };
+
+  const handleAddExpense = () => {
+    if (!expenseForm.amount || !expenseForm.category) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const expense: Expense = {
+      id: editingExpense?.id || Date.now().toString(),
+      amount: parseFloat(expenseForm.amount),
+      category: expenseForm.category,
+      description: expenseForm.description,
+      date: expenseForm.date,
+      type: expenseForm.type,
+      miles: expenseForm.miles ? parseFloat(expenseForm.miles) : undefined,
+      costPerMile: expenseForm.costPerMile ? parseFloat(expenseForm.costPerMile) : undefined,
+    };
+
+    if (editingExpense) {
+      updateExpense(expense);
+      toast({
+        title: "Expense Updated",
+        description: `Updated expense of £${expense.amount}`,
+      });
+    } else {
+      addExpense(expense);
+      toast({
+        title: "Expense Added",
+        description: `Added expense of £${expense.amount}`,
+      });
+    }
+
+    resetExpenseForm();
+  };
+
+  const resetEarningForm = () => {
+    setEarningForm({
       amount: "",
       platform: "",
-      customPlatform: "",
       trips: "",
       hours: "",
-      date: new Date().toISOString().split("T")[0],
+      date: new Date().toISOString().split('T')[0],
     });
     setEditingEarning(null);
-    setIsEarningsDialogOpen(false);
-
-    toast({
-      title: "Success",
-      description: editingEarning ? "Earning updated successfully" : "Earning added successfully",
-    });
+    setIsEarningDialogOpen(false);
   };
 
-  const openEarningsEditDialog = (earning?: Earning) => {
-    if (earning) {
-      setEditingEarning(earning);
-      setEarningsFormData({
-        amount: earning.amount.toString(),
-        platform: earning.platform,
-        customPlatform: "",
-        trips: earning.trips.toString(),
-        hours: earning.hours.toString(),
-        date: earning.date,
-      });
-    } else {
-      setEditingEarning(null);
-      setEarningsFormData({
-        amount: "",
-        platform: "",
-        customPlatform: "",
-        trips: "",
-        hours: "",
-        date: new Date().toISOString().split("T")[0],
-      });
-    }
-    setIsEarningsDialogOpen(true);
-  };
-
-  const handleDeleteEarning = () => {
-    if (earningToDelete) {
-      deleteEarning(earningToDelete);
-      setEarningToDelete(null);
-      setIsEarningsDeleteDialogOpen(false);
-      toast({
-        title: "Success",
-        description: "Earning deleted successfully",
-      });
-    }
-  };
-
-  // Expenses functions
-  const handleSaveExpense = () => {
-    if (expenseType === "manual" && newExpense.amount && newExpense.category) {
-      let selectedCategory = newExpense.category;
-      if (newExpense.category === "custom" && newExpense.customCategory) {
-        selectedCategory = newExpense.customCategory;
-        if (!customCategories.includes(newExpense.customCategory)) {
-          setCustomCategories([...customCategories, newExpense.customCategory]);
-        }
-      }
-
-      const expense = {
-        id: editingExpense?.id || Date.now().toString(),
-        amount: parseFloat(newExpense.amount),
-        category: selectedCategory,
-        description: newExpense.description || "Manual expense",
-        date: selectedDate,
-        type: "manual" as const,
-      };
-
-      if (editingExpense) {
-        updateExpense(expense);
-      } else {
-        addExpense(expense);
-      }
-    } else if (expenseType === "mileage" && newExpense.miles && newExpense.costPerMile) {
-      const calculatedAmount = parseFloat(newExpense.miles) * parseFloat(newExpense.costPerMile);
-      const expense = {
-        id: editingExpense?.id || Date.now().toString(),
-        amount: calculatedAmount,
-        category: "Mileage",
-        description: newExpense.description || "Business mileage",
-        date: selectedDate,
-        type: "mileage" as const,
-        miles: parseFloat(newExpense.miles),
-        costPerMile: parseFloat(newExpense.costPerMile),
-      };
-
-      if (editingExpense) {
-        updateExpense(expense);
-      } else {
-        addExpense(expense);
-      }
-    }
-
-    setNewExpense({
+  const resetExpenseForm = () => {
+    setExpenseForm({
       amount: "",
       category: "",
-      customCategory: "",
       description: "",
+      date: new Date(),
+      type: "manual",
       miles: "",
       costPerMile: "0.45",
     });
-    setSelectedDate(new Date());
     setEditingExpense(null);
-    setIsExpensesDialogOpen(false);
+    setIsExpenseDialogOpen(false);
   };
 
-  const openExpensesEditDialog = (expense?: Expense) => {
-    if (expense) {
-      setEditingExpense(expense);
-      setExpenseType(expense.type);
-      setSelectedDate(expense.date);
-
-      if (expense.type === "manual") {
-        setNewExpense({
-          amount: expense.amount.toString(),
-          category: expense.category,
-          customCategory: "",
-          description: expense.description,
-          miles: "",
-          costPerMile: "0.45",
-        });
-      } else if (expense.type === "mileage") {
-        setNewExpense({
-          amount: "",
-          category: "",
-          customCategory: "",
-          description: expense.description,
-          miles: expense.miles?.toString() || "",
-          costPerMile: expense.costPerMile?.toString() || "0.45",
-        });
-      }
-    } else {
-      setEditingExpense(null);
-      setExpenseType("manual");
-      setSelectedDate(new Date());
-      setNewExpense({
-        amount: "",
-        category: "",
-        customCategory: "",
-        description: "",
-        miles: "",
-        costPerMile: "0.45",
-      });
-    }
-    setIsExpensesDialogOpen(true);
+  const handleEditEarning = (earning: Earning) => {
+    setEditingEarning(earning);
+    setEarningForm({
+      amount: earning.amount.toString(),
+      platform: earning.platform,
+      trips: earning.trips.toString(),
+      hours: earning.hours.toString(),
+      date: earning.date,
+    });
+    setIsEarningDialogOpen(true);
   };
 
-  const handleDeleteExpense = () => {
-    if (expenseToDelete) {
-      deleteExpense(expenseToDelete);
-      setExpenseToDelete(null);
-      setIsExpensesDeleteDialogOpen(false);
-    }
-  };
-
-  // Helper functions
-  const getPlatformColor = (platform: string) => {
-    switch (platform.toLowerCase()) {
-      case "uber":
-        return "bg-black text-white";
-      case "bolt":
-        return "bg-green-500 text-white";
-      default:
-        return "bg-primary text-primary-foreground";
-    }
-  };
-
-  const getPlatformIcon = (platform: string) => {
-    switch (platform.toLowerCase()) {
-      case "uber":
-      case "bolt":
-      case "lyft":
-        return <Car className="w-4 h-4" />;
-      default:
-        return <PoundSterling className="w-4 h-4" />;
-    }
+  const handleEditExpense = (expense: Expense) => {
+    setEditingExpense(expense);
+    setExpenseForm({
+      amount: expense.amount.toString(),
+      category: expense.category,
+      description: expense.description,
+      date: expense.date,
+      type: expense.type,
+      miles: expense.miles?.toString() || "",
+      costPerMile: expense.costPerMile?.toString() || "0.45",
+    });
+    setIsExpenseDialogOpen(true);
   };
 
   const getCategoryIcon = (category: string) => {
@@ -363,104 +202,104 @@ const Finance = () => {
         return <Fuel className="w-4 h-4" />;
       case "maintenance":
         return <Wrench className="w-4 h-4" />;
-      case "mileage":
-        return <Car className="w-4 h-4" />;
-      default:
+      case "insurance":
         return <Receipt className="w-4 h-4" />;
+      default:
+        return <Car className="w-4 h-4" />;
     }
   };
 
-
   return (
     <div className="min-h-screen bg-gradient-background pb-20">
-      {/* Header */}
-      <div className="relative overflow-hidden">
-        {/* Background with gradient and pattern */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.03"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-40"></div>
+      {/* Modern Header with Glass Effect */}
+      <div className="relative bg-gradient-primary text-white overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)`,
+            backgroundSize: '20px 20px'
+          }} />
         </div>
         
-        <div className="relative z-10 p-4 sm:p-6 pb-8 sm:pb-12">
-          {/* Header Section */}
-          <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
-                  <PoundSterling className="w-7 h-7 text-white" />
+        <div className="relative p-4 sm:p-6 pb-6 sm:pb-8">
+          <div className="flex justify-between items-start sm:items-center mb-6">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="relative">
+                  <div className="w-12 h-12 bg-gradient-accent rounded-2xl flex items-center justify-center shadow-lg">
+                    <PoundSterling className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-success rounded-full animate-pulse" />
                 </div>
-                <div className="absolute -top-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-white animate-pulse"></div>
-              </div>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Finance Hub</h1>
-                <p className="text-white/70 text-sm sm:text-base">Manage your financial journey</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span className="text-white/90 text-sm font-medium">Live</span>
+                <div>
+                  <h1 className="text-2xl font-bold text-white">Finance Hub</h1>
+                  <p className="text-white/80 text-sm flex items-center gap-1">
+                    <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
+                    Live tracking active
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Modern Finance Overview Cards */}
+          {/* Modern Overview Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            {/* Earnings Card */}
-            <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-green-600 rounded-2xl blur-sm opacity-20 group-hover:opacity-30 transition-opacity"></div>
-              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 hover:bg-white/15 transition-all duration-300">
+            {/* Today's Net */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-white/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/15 transition-all duration-300">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-emerald-400" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center">
+                    <Activity className="w-5 h-5 text-white" />
                   </div>
-                  <div className="text-right">
-                    <div className="text-xs text-emerald-400 font-medium">+12.5%</div>
-                  </div>
+                  <Badge className="bg-blue-500/20 text-blue-100 border-blue-400/30 text-xs">
+                    +8.2%
+                  </Badge>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-white/70 text-sm font-medium">Total Earnings</p>
-                  <p className="text-2xl font-bold text-white">£{totalEarnings.toFixed(2)}</p>
+                <p className="text-white/80 text-sm mb-1">Today's Net</p>
+                <p className="text-2xl font-bold text-white">£{todayNet.toFixed(2)}</p>
+                <div className="w-full h-1 bg-white/20 rounded-full mt-3 overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full w-3/4 animate-pulse" />
                 </div>
               </div>
             </div>
 
-            {/* Expenses Card */}
-            <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-pink-600 rounded-2xl blur-sm opacity-20 group-hover:opacity-30 transition-opacity"></div>
-              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 hover:bg-white/15 transition-all duration-300">
+            {/* Weekly Earnings */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/15 transition-all duration-300">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center">
-                    <TrendingDown className="w-5 h-5 text-red-400" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-600 rounded-xl flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-white" />
                   </div>
-                  <div className="text-right">
-                    <div className="text-xs text-red-400 font-medium">-8.2%</div>
-                  </div>
+                  <Badge className="bg-green-500/20 text-green-100 border-green-400/30 text-xs">
+                    +12.4%
+                  </Badge>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-white/70 text-sm font-medium">Total Expenses</p>
-                  <p className="text-2xl font-bold text-white">£{totalExpenses.toFixed(2)}</p>
+                <p className="text-white/80 text-sm mb-1">Weekly Earnings</p>
+                <p className="text-2xl font-bold text-white">£{weeklyEarnings.toFixed(2)}</p>
+                <div className="w-full h-1 bg-white/20 rounded-full mt-3 overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-green-400 to-emerald-600 rounded-full w-4/5 animate-pulse" />
                 </div>
               </div>
             </div>
 
-            {/* Net Income Card */}
-            <div className="group relative sm:col-span-1 col-span-1">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl blur-sm opacity-20 group-hover:opacity-30 transition-opacity"></div>
-              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-5 hover:bg-white/15 transition-all duration-300">
+            {/* Weekly Expenses */}
+            <div className="relative group">
+              <div className="absolute inset-0 bg-gradient-to-r from-red-400/20 to-pink-400/20 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+              <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 hover:bg-white/15 transition-all duration-300">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                    <PoundSterling className="w-5 h-5 text-blue-400" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-red-400 to-pink-600 rounded-xl flex items-center justify-center">
+                    <TrendingDown className="w-5 h-5 text-white" />
                   </div>
-                  <div className="text-right">
-                    <div className="text-xs text-blue-400 font-medium">Net</div>
-                  </div>
+                  <Badge className="bg-red-500/20 text-red-100 border-red-400/30 text-xs">
+                    -5.1%
+                  </Badge>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-white/70 text-sm font-medium">Net Income</p>
-                  <p className={`text-2xl font-bold ${(totalEarnings - totalExpenses) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                    £{(totalEarnings - totalExpenses).toFixed(2)}
-                  </p>
+                <p className="text-white/80 text-sm mb-1">Weekly Expenses</p>
+                <p className="text-2xl font-bold text-white">£{weeklyExpenses.toFixed(2)}</p>
+                <div className="w-full h-1 bg-white/20 rounded-full mt-3 overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-red-400 to-pink-600 rounded-full w-2/5 animate-pulse" />
                 </div>
               </div>
             </div>
@@ -468,26 +307,22 @@ const Finance = () => {
 
           {/* Quick Stats Bar */}
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-lg font-bold text-white">{filteredEarnings.length}</div>
-                <div className="text-xs text-white/60">Earnings</div>
+            <div className="grid grid-cols-4 gap-4 text-center">
+              <div>
+                <p className="text-white/60 text-xs mb-1">Total Trips</p>
+                <p className="text-lg font-bold text-white">156</p>
               </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-white">{filteredExpenses.length}</div>
-                <div className="text-xs text-white/60">Expenses</div>
+              <div>
+                <p className="text-white/60 text-xs mb-1">Hours</p>
+                <p className="text-lg font-bold text-white">89.5h</p>
               </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-white">
-                  {filteredEarnings.reduce((sum, e) => sum + e.trips, 0)}
-                </div>
-                <div className="text-xs text-white/60">Total Trips</div>
+              <div>
+                <p className="text-white/60 text-xs mb-1">Avg/Hour</p>
+                <p className="text-lg font-bold text-white">£{(weeklyEarnings / 89.5).toFixed(2)}</p>
               </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-white">
-                  {filteredEarnings.reduce((sum, e) => sum + e.hours, 0).toFixed(1)}h
-                </div>
-                <div className="text-xs text-white/60">Hours</div>
+              <div>
+                <p className="text-white/60 text-xs mb-1">Net Income</p>
+                <p className="text-lg font-bold text-success">£{netIncome.toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -495,628 +330,389 @@ const Finance = () => {
       </div>
 
       <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 mt-4 sm:mt-6">
-        {/* Date Filter */}
-        <GradientCard>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-            <h3 className="font-semibold text-base sm:text-lg text-primary">Filter by Date Range</h3>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "justify-start text-left font-normal w-full sm:w-auto text-sm",
-                    !dateRange?.from && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange?.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, "MMM dd")} - {format(dateRange.to, "MMM dd, y")}
-                      </>
-                    ) : (
-                      format(dateRange.from, "PPP")
-                    )
-                  ) : (
-                    <span>Pick a date range</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={dateRange?.from}
-                  selected={dateRange}
-                  onSelect={setDateRange}
-                  numberOfMonths={1}
-                  className="p-3 pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </GradientCard>
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <Button
+            onClick={() => setIsEarningDialogOpen(true)}
+            className="h-12 sm:h-14 bg-gradient-success hover:opacity-90 text-white font-medium rounded-xl shadow-soft"
+          >
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+            Add Earning
+          </Button>
+          <Button
+            onClick={() => setIsExpenseDialogOpen(true)}
+            variant="outline"
+            className="h-12 sm:h-14 border-2 font-medium rounded-xl hover:bg-accent/10"
+          >
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+            Add Expense
+          </Button>
+        </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="earnings" className="text-sm">
-              Earnings
-            </TabsTrigger>
-            <TabsTrigger value="expenses" className="text-sm">
-              Expenses
-            </TabsTrigger>
+        {/* Tabs for Earnings and Expenses */}
+        <Tabs defaultValue="earnings" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4 sm:mb-6">
+            <TabsTrigger value="earnings" className="text-sm sm:text-base">Earnings</TabsTrigger>
+            <TabsTrigger value="expenses" className="text-sm sm:text-base">Expenses</TabsTrigger>
           </TabsList>
 
-          {/* Earnings Tab */}
-          <TabsContent value="earnings" className="space-y-4">
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <h3 className="font-semibold text-lg text-primary">Your Earnings</h3>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
-                    <SelectTrigger className="w-full sm:w-40">
-                      <SelectValue placeholder="All Platforms" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Platforms</SelectItem>
-                      {availablePlatforms.map((platform) => (
-                        <SelectItem key={platform} value={platform}>
-                          {platform}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Dialog open={isEarningsDialogOpen} onOpenChange={setIsEarningsDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button onClick={() => openEarningsEditDialog()}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Earning
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="rounded-2xl max-w-md max-h-[90vh] overflow-y-auto">
-                      <DialogHeader className="pb-4">
-                        <DialogTitle className="text-lg sm:text-xl">
-                          {editingEarning ? "Edit Earning" : "Add New Earning"}
-                        </DialogTitle>
-                        <DialogDescription className="text-sm sm:text-base">
-                          {editingEarning ? "Update earning details" : "Record earnings for a shift"}
-                        </DialogDescription>
-                      </DialogHeader>
-
-                      <div className="space-y-6">
-                        <div className="space-y-3">
-                          <Label htmlFor="platform" className="text-sm font-medium">Platform</Label>
-                          <Select
-                            value={earningsFormData.platform}
-                            onValueChange={(value) => setEarningsFormData({ ...earningsFormData, platform: value })}
-                          >
-                            <SelectTrigger className="rounded-xl h-12 text-base">
-                              <SelectValue placeholder="Select platform" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-background border shadow-lg max-h-60">
-                              {allPlatforms.map((platform) => (
-                                <SelectItem key={platform} value={platform} className="text-base py-3">
-                                  {platform}
-                                </SelectItem>
-                              ))}
-                              <SelectItem value="custom" className="text-base py-3">Add Custom Platform</SelectItem>
-                            </SelectContent>
-                          </Select>
+          <TabsContent value="earnings" className="space-y-3 sm:space-y-4">
+            {earnings.length === 0 ? (
+              <GradientCard className="text-center py-8">
+                <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="font-semibold mb-2 text-primary">No earnings yet</h3>
+                <p className="text-muted-foreground mb-4">Start tracking your earnings to see them here</p>
+                <Button onClick={() => setIsEarningDialogOpen(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add First Earning
+                </Button>
+              </GradientCard>
+            ) : (
+              earnings.map((earning) => (
+                <GradientCard key={earning.id} className="hover:shadow-soft transition-shadow">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-success rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Car className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm sm:text-base text-primary truncate">{earning.platform}</h3>
+                        <div className="flex items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mt-1">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(earning.date).toLocaleDateString()}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Activity className="w-3 h-3" />
+                            {earning.trips} trips
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {earning.hours}h
+                          </span>
                         </div>
-
-                        {earningsFormData.platform === "custom" && (
-                          <div className="space-y-3">
-                            <Label htmlFor="customPlatform" className="text-sm font-medium">Custom Platform Name</Label>
-                            <Input
-                              id="customPlatform"
-                              value={earningsFormData.customPlatform}
-                              onChange={(e) => setEarningsFormData({ ...earningsFormData, customPlatform: e.target.value })}
-                              placeholder="e.g., Local Taxi Company"
-                              className="rounded-xl h-12 text-base"
-                            />
-                          </div>
-                        )}
-
-                        <div className="space-y-3">
-                          <Label htmlFor="amount" className="text-sm font-medium">Total Earning (£)</Label>
-                          <Input
-                            id="amount"
-                            type="number"
-                            step="0.01"
-                            value={earningsFormData.amount}
-                            onChange={(e) => setEarningsFormData({ ...earningsFormData, amount: e.target.value })}
-                            placeholder="0.00"
-                            className="rounded-xl h-12 text-base"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                          <div className="space-y-3">
-                            <Label htmlFor="trips" className="text-sm font-medium">Number of Trips</Label>
-                            <Input
-                              id="trips"
-                              type="number"
-                              value={earningsFormData.trips}
-                              onChange={(e) => setEarningsFormData({ ...earningsFormData, trips: e.target.value })}
-                              placeholder="0"
-                              className="rounded-xl h-12 text-base"
-                            />
-                          </div>
-                          <div className="space-y-3">
-                            <Label htmlFor="hours" className="text-sm font-medium">Hours Worked</Label>
-                            <Input
-                              id="hours"
-                              type="number"
-                              step="0.5"
-                              value={earningsFormData.hours}
-                              onChange={(e) => setEarningsFormData({ ...earningsFormData, hours: e.target.value })}
-                              placeholder="0.0"
-                              className="rounded-xl h-12 text-base"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <Label htmlFor="date" className="text-sm font-medium">Date</Label>
-                          <Input
-                            id="date"
-                            type="date"
-                            value={earningsFormData.date}
-                            onChange={(e) => setEarningsFormData({ ...earningsFormData, date: e.target.value })}
-                            className="rounded-xl h-12 text-base"
-                          />
-                        </div>
-
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="text-right">
+                        <p className="font-bold text-lg sm:text-xl text-success">£{earning.amount.toFixed(2)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          £{(earning.amount / earning.hours || 0).toFixed(2)}/hr
+                        </p>
+                      </div>
+                      <div className="flex gap-1">
                         <Button
-                          onClick={handleSaveEarning}
-                          variant="default"
-                          className="w-full rounded-xl h-12 text-base font-medium mt-6"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditEarning(earning)}
+                          className="h-8 w-8 p-0"
                         >
-                          {editingEarning ? "Update Earning" : "Add Earning"}
+                          <Edit3 className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            deleteEarning(earning.id);
+                            toast({
+                              title: "Earning Deleted",
+                              description: "Earning has been removed",
+                            });
+                          }}
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-3 h-3" />
                         </Button>
                       </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </div>
-
-              {platformFilteredEarnings.length === 0 ? (
-                <GradientCard className="text-center py-8">
-                  <Car className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2 text-primary">
-                    {selectedPlatform === "all" ? "No earnings yet" : `No earnings for ${selectedPlatform}`}
-                  </h3>
-                  <p className="text-muted-foreground mb-4">
-                    {selectedPlatform === "all" 
-                      ? "Start tracking your platform earnings" 
-                      : `No earnings found for ${selectedPlatform} in the selected date range`
-                    }
-                  </p>
+                    </div>
+                  </div>
                 </GradientCard>
-              ) : (
-                <div className="space-y-4">
-                  {platformFilteredEarnings.map((earning) => (
-                    <GradientCard key={earning.id} className="hover:shadow-soft transition-shadow p-3 sm:p-4">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
-                              earning.platform === "Uber" ? "bg-gradient-to-br from-black to-gray-800 text-white" :
-                              earning.platform === "Bolt" ? "bg-gradient-to-br from-green-500 to-green-600 text-white" :
-                              earning.platform === "Lyft" ? "bg-gradient-to-br from-pink-500 to-pink-600 text-white" :
-                              "bg-gradient-to-br from-primary to-primary/80 text-white"
-                            }`}>
-                              <div className="w-4 h-4">{getPlatformIcon(earning.platform)}</div>
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-sm text-primary">{earning.platform}</h3>
-                              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                <CalendarIcon className="w-3 h-3" />
-                                {new Date(earning.date).toLocaleDateString()}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openEarningsEditDialog(earning)}
-                              className="h-8 w-8 p-0 hover:bg-muted/50 rounded-lg"
-                            >
-                              <Edit3 className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setEarningToDelete(earning.id);
-                                setIsEarningsDeleteDialogOpen(true);
-                              }}
-                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive rounded-lg"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-
-                        <div className="bg-muted/20 rounded-xl p-3">
-                          <div className="flex items-baseline justify-between mb-2">
-                            <span className="text-xl font-bold text-success">£{earning.amount.toFixed(2)}</span>
-                            <div className="text-right">
-                              <div className="flex items-center gap-1 text-xs text-success">
-                                <TrendingUp className="w-3 h-3" />
-                                £{(earning.amount / earning.hours).toFixed(2)}/hr
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-2">
-                          <div className="bg-success/5 border border-success/10 rounded-lg p-2 text-center">
-                            <div className="text-xs text-muted-foreground mb-1">Trips</div>
-                            <div className="font-bold text-sm text-success">{earning.trips}</div>
-                          </div>
-                          <div className="bg-accent/5 border border-accent/10 rounded-lg p-2 text-center">
-                            <div className="text-xs text-muted-foreground mb-1">Hours</div>
-                            <div className="font-bold text-sm text-accent">{earning.hours}h</div>
-                          </div>
-                          <div className="bg-primary/5 border border-primary/10 rounded-lg p-2 text-center">
-                            <div className="text-xs text-muted-foreground mb-1">Per Trip</div>
-                            <div className="font-bold text-sm text-primary">£{(earning.amount / earning.trips).toFixed(2)}</div>
-                          </div>
-                        </div>
-                      </div>
-                    </GradientCard>
-                  ))}
-                </div>
-              )}
-            </div>
+              ))
+            )}
           </TabsContent>
 
-          {/* Expenses Tab */}
-          <TabsContent value="expenses" className="space-y-4">
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <h3 className="font-semibold text-lg text-primary">Your Expenses</h3>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="w-full sm:w-40">
-                      <SelectValue placeholder="All Categories" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      {availableCategories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Dialog open={isExpensesDialogOpen} onOpenChange={setIsExpensesDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button onClick={() => openExpensesEditDialog()}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Expense
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="rounded-2xl max-w-md max-h-[90vh] overflow-y-auto">
-                      <DialogHeader className="pb-4">
-                        <DialogTitle className="text-lg sm:text-xl">
-                          {editingExpense ? "Edit Expense" : "Add New Expense"}
-                        </DialogTitle>
-                        <DialogDescription className="text-sm sm:text-base">
-                          {editingExpense ? "Update expense details" : "Record a business expense or calculate mileage"}
-                        </DialogDescription>
-                      </DialogHeader>
-
-                      <Tabs value={expenseType} onValueChange={(value) => setExpenseType(value as "manual" | "mileage")} className="w-full">
-                        <TabsList className="grid w-full grid-cols-2 mb-6">
-                          <TabsTrigger value="manual" className="text-sm">Manual Entry</TabsTrigger>
-                          <TabsTrigger value="mileage" className="text-sm">Mileage</TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="manual" className="space-y-6">
-                          <div className="space-y-3">
-                            <Label htmlFor="amount" className="text-sm font-medium">Amount (£)</Label>
-                            <Input
-                              id="amount"
-                              type="number"
-                              step="0.01"
-                              placeholder="0.00"
-                              value={newExpense.amount}
-                              onChange={(e) => setNewExpense({ ...newExpense, amount: e.target.value })}
-                              className="rounded-xl h-12 text-base"
-                            />
-                          </div>
-
-                          <div className="space-y-3">
-                            <Label htmlFor="category" className="text-sm font-medium">Category</Label>
-                            <Select
-                              value={newExpense.category}
-                              onValueChange={(value) => setNewExpense({ ...newExpense, category: value })}
-                            >
-                              <SelectTrigger className="rounded-xl h-12 text-base">
-                                <SelectValue placeholder="Select category" />
-                              </SelectTrigger>
-                              <SelectContent className="bg-background border shadow-lg max-h-60">
-                                {allCategories.map((category) => (
-                                  <SelectItem key={category} value={category} className="text-base py-3">
-                                    {category}
-                                  </SelectItem>
-                                ))}
-                                <SelectItem value="custom" className="text-base py-3">Add Custom Category</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-
-                          {newExpense.category === "custom" && (
-                            <div className="space-y-3">
-                              <Label className="text-sm font-medium">Custom Category Name</Label>
-                              <Input
-                                value={newExpense.customCategory}
-                                onChange={(e) => setNewExpense({ ...newExpense, customCategory: e.target.value })}
-                                placeholder="e.g., Car Wash, Phone Bill"
-                                className="rounded-xl h-12 text-base"
-                              />
-                            </div>
-                          )}
-
-                          <div className="space-y-3">
-                            <Label className="text-sm font-medium">Date</Label>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className={cn(
-                                    "w-full justify-start text-left font-normal rounded-xl h-12 text-base",
-                                    !selectedDate && "text-muted-foreground"
-                                  )}
-                                >
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                  mode="single"
-                                  selected={selectedDate}
-                                  onSelect={(date) => date && setSelectedDate(date)}
-                                  initialFocus
-                                  className="p-3 pointer-events-auto"
-                                />
-                              </PopoverContent>
-                            </Popover>
-                          </div>
-
-                          <div className="space-y-3">
-                            <Label className="text-sm font-medium">Description</Label>
-                            <Input
-                              placeholder="Optional description"
-                              value={newExpense.description}
-                              onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
-                              className="rounded-xl h-12 text-base"
-                            />
-                          </div>
-                        </TabsContent>
-
-                        <TabsContent value="mileage" className="space-y-6">
-                          <div className="space-y-3">
-                            <Label className="text-sm font-medium">Miles Driven</Label>
-                            <Input
-                              type="number"
-                              step="0.1"
-                              placeholder="0.0"
-                              value={newExpense.miles}
-                              onChange={(e) => setNewExpense({ ...newExpense, miles: e.target.value })}
-                              className="rounded-xl h-12 text-base"
-                            />
-                          </div>
-
-                          <div className="space-y-3">
-                            <Label className="text-sm font-medium">Cost per Mile (£)</Label>
-                            <Input
-                              type="number"
-                              step="0.001"
-                              value={newExpense.costPerMile}
-                              onChange={(e) => setNewExpense({ ...newExpense, costPerMile: e.target.value })}
-                              className="rounded-xl h-12 text-base"
-                            />
-                            <p className="text-xs text-muted-foreground">Standard HMRC rate: £0.45/mile</p>
-                          </div>
-
-                          {newExpense.miles && newExpense.costPerMile && (
-                            <div className="bg-accent p-4 rounded-xl">
-                              <div className="flex items-center gap-2 mb-2">
-                                <PoundSterling className="w-4 h-4 text-primary" />
-                                <span className="text-sm font-medium">Calculated Amount</span>
-                              </div>
-                              <p className="text-2xl font-bold text-primary">
-                                £{(parseFloat(newExpense.miles) * parseFloat(newExpense.costPerMile)).toFixed(2)}
-                              </p>
-                            </div>
-                          )}
-
-                          <div className="space-y-2">
-                            <Label>Date</Label>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  className={cn(
-                                    "w-full justify-start text-left font-normal rounded-xl",
-                                    !selectedDate && "text-muted-foreground"
-                                  )}
-                                >
-                                  <CalendarIcon className="mr-2 h-4 w-4" />
-                                  {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
-                                </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                  mode="single"
-                                  selected={selectedDate}
-                                  onSelect={(date) => date && setSelectedDate(date)}
-                                  initialFocus
-                                  className="p-3 pointer-events-auto"
-                                />
-                              </PopoverContent>
-                            </Popover>
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label>Description</Label>
-                            <Input
-                              placeholder="Trip purpose"
-                              value={newExpense.description}
-                              onChange={(e) => setNewExpense({ ...newExpense, description: e.target.value })}
-                              className="rounded-xl"
-                            />
-                          </div>
-                        </TabsContent>
-
-                        <Button
-                          onClick={handleSaveExpense}
-                          variant="default"
-                          className="w-full rounded-xl h-12 text-base font-medium mt-6"
-                        >
-                          {editingExpense ? "Update Expense" : "Add Expense"}
-                        </Button>
-                      </Tabs>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </div>
-
-              {categoryFilteredExpenses.length === 0 && selectedCategory !== "all" ? (
-                <GradientCard className="text-center py-8">
-                  <Receipt className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2 text-primary">No expenses for {selectedCategory}</h3>
-                  <p className="text-muted-foreground mb-4">No expenses found for {selectedCategory} in the selected date range</p>
-                </GradientCard>
-              ) : filteredExpenses.length === 0 ? (
-                <GradientCard className="text-center py-8">
-                  <Receipt className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="font-semibold mb-2 text-primary">No expenses recorded</h3>
-                  <p className="text-muted-foreground mb-4">Start tracking your business expenses</p>
-                </GradientCard>
-              ) : (
-                <div className="space-y-4">
-                  {categoryFilteredExpenses.map((expense) => (
-                    <GradientCard key={expense.id} className="hover:shadow-elegant transition-all duration-300 p-3 sm:p-4">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
-                              expense.category === "Fuel" ? "bg-gradient-to-br from-destructive to-destructive/80 text-white" :
-                              expense.category === "Maintenance" ? "bg-gradient-to-br from-warning to-warning/80 text-white" :
-                              expense.category === "Mileage" ? "bg-gradient-to-br from-accent to-accent/80 text-white" :
-                              "bg-gradient-to-br from-muted to-muted/80 text-muted-foreground"
-                            }`}>
-                              <div className="w-4 h-4">{getCategoryIcon(expense.category)}</div>
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-sm text-primary">{expense.category}</h3>
-                              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                <Receipt className="w-3 h-3" />
-                                {expense.date.toLocaleDateString()}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openExpensesEditDialog(expense)}
-                              className="h-8 w-8 p-0 hover:bg-muted/50 rounded-lg"
-                            >
-                              <Edit3 className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setExpenseToDelete(expense.id);
-                                setIsExpensesDeleteDialogOpen(true);
-                              }}
-                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive rounded-lg"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-
-                        <div className="bg-muted/20 rounded-xl p-3">
-                          <div className="flex items-baseline justify-between mb-2">
-                            <span className="text-xl font-bold text-destructive">-£{expense.amount.toFixed(2)}</span>
-                            <div className="text-right">
-                              {expense.type === "mileage" && (
-                                <span className="text-xs text-accent font-medium">Auto-calculated</span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-sm text-muted-foreground">{expense.description}</div>
-                        </div>
-
-                        {expense.type === "mileage" && expense.miles && expense.costPerMile && (
-                          <div className="grid grid-cols-2 gap-2">
-                            <div className="bg-accent/5 border border-accent/10 rounded-lg p-2 text-center">
-                              <div className="text-xs text-muted-foreground mb-1">Miles</div>
-                              <div className="font-bold text-sm text-accent">{expense.miles}</div>
-                            </div>
-                            <div className="bg-muted/30 rounded-lg p-2 text-center">
-                              <div className="text-xs text-muted-foreground mb-1">Rate/Mile</div>
-                              <div className="font-bold text-sm">£{expense.costPerMile?.toFixed(3)}</div>
-                            </div>
-                          </div>
-                        )}
+          <TabsContent value="expenses" className="space-y-3 sm:space-y-4">
+            {expenses.length === 0 ? (
+              <GradientCard className="text-center py-8">
+                <TrendingDown className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="font-semibold mb-2 text-primary">No expenses yet</h3>
+                <p className="text-muted-foreground mb-4">Start tracking your expenses to see them here</p>
+                <Button onClick={() => setIsExpenseDialogOpen(true)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add First Expense
+                </Button>
+              </GradientCard>
+            ) : (
+              expenses.map((expense) => (
+                <GradientCard key={expense.id} className="hover:shadow-soft transition-shadow">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-destructive rounded-xl flex items-center justify-center flex-shrink-0">
+                        {getCategoryIcon(expense.category)}
                       </div>
-                    </GradientCard>
-                  ))}
-                </div>
-              )}
-            </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-sm sm:text-base text-primary truncate">{expense.category}</h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground truncate">{expense.description}</p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                          <Calendar className="w-3 h-3" />
+                          {expense.date.toLocaleDateString()}
+                          {expense.type === "mileage" && expense.miles && (
+                            <>
+                              <span>•</span>
+                              <span>{expense.miles} miles</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <div className="text-right">
+                        <p className="font-bold text-lg sm:text-xl text-destructive">£{expense.amount.toFixed(2)}</p>
+                        <Badge variant="outline" className="text-xs">
+                          {expense.type}
+                        </Badge>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditExpense(expense)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            deleteExpense(expense.id);
+                            toast({
+                              title: "Expense Deleted",
+                              description: "Expense has been removed",
+                            });
+                          }}
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </GradientCard>
+              ))
+            )}
           </TabsContent>
         </Tabs>
       </div>
 
-      {/* Delete Dialogs */}
-      <Dialog open={isEarningsDeleteDialogOpen} onOpenChange={setIsEarningsDeleteDialogOpen}>
-        <DialogContent className="rounded-2xl max-w-sm">
+      {/* Add/Edit Earning Dialog */}
+      <Dialog open={isEarningDialogOpen} onOpenChange={setIsEarningDialogOpen}>
+        <DialogContent className="rounded-2xl max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader className="pb-4">
-            <DialogTitle className="text-lg">Delete Earning</DialogTitle>
-            <DialogDescription className="text-sm">
-              Are you sure you want to delete this earning? This action cannot be undone.
+            <DialogTitle className="text-lg sm:text-xl">
+              {editingEarning ? "Edit Earning" : "Add New Earning"}
+            </DialogTitle>
+            <DialogDescription className="text-sm sm:text-base">
+              {editingEarning ? "Update your earning details" : "Record your latest earning"}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex gap-3 pt-4">
-            <Button variant="outline" onClick={() => setIsEarningsDeleteDialogOpen(false)} className="flex-1">
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteEarning} className="flex-1">
-              Delete
-            </Button>
+          
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <Label htmlFor="amount" className="text-sm font-medium">Amount (£)</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={earningForm.amount}
+                  onChange={(e) => setEarningForm({...earningForm, amount: e.target.value})}
+                  className="rounded-xl h-12 text-base"
+                />
+              </div>
+              <div className="space-y-3">
+                <Label htmlFor="platform" className="text-sm font-medium">Platform</Label>
+                <Select value={earningForm.platform} onValueChange={(value) => setEarningForm({...earningForm, platform: value})}>
+                  <SelectTrigger className="rounded-xl h-12">
+                    <SelectValue placeholder="Select platform" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Uber">Uber</SelectItem>
+                    <SelectItem value="Bolt">Bolt</SelectItem>
+                    <SelectItem value="Lyft">Lyft</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <Label htmlFor="trips" className="text-sm font-medium">Number of Trips</Label>
+                <Input
+                  id="trips"
+                  type="number"
+                  placeholder="0"
+                  value={earningForm.trips}
+                  onChange={(e) => setEarningForm({...earningForm, trips: e.target.value})}
+                  className="rounded-xl h-12 text-base"
+                />
+              </div>
+              <div className="space-y-3">
+                <Label htmlFor="hours" className="text-sm font-medium">Hours Worked</Label>
+                <Input
+                  id="hours"
+                  type="number"
+                  step="0.1"
+                  placeholder="0.0"
+                  value={earningForm.hours}
+                  onChange={(e) => setEarningForm({...earningForm, hours: e.target.value})}
+                  className="rounded-xl h-12 text-base"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="date" className="text-sm font-medium">Date</Label>
+              <Input
+                id="date"
+                type="date"
+                value={earningForm.date}
+                onChange={(e) => setEarningForm({...earningForm, date: e.target.value})}
+                className="rounded-xl h-12 text-base"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <Button 
+                variant="outline" 
+                onClick={resetEarningForm}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleAddEarning}
+                className="flex-1"
+              >
+                {editingEarning ? "Update" : "Add"} Earning
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isExpensesDeleteDialogOpen} onOpenChange={setIsExpensesDeleteDialogOpen}>
-        <DialogContent className="rounded-2xl max-w-sm">
+      {/* Add/Edit Expense Dialog */}
+      <Dialog open={isExpenseDialogOpen} onOpenChange={setIsExpenseDialogOpen}>
+        <DialogContent className="rounded-2xl max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader className="pb-4">
-            <DialogTitle className="text-lg">Delete Expense</DialogTitle>
-            <DialogDescription className="text-sm">
-              Are you sure you want to delete this expense? This action cannot be undone.
+            <DialogTitle className="text-lg sm:text-xl">
+              {editingExpense ? "Edit Expense" : "Add New Expense"}
+            </DialogTitle>
+            <DialogDescription className="text-sm sm:text-base">
+              {editingExpense ? "Update your expense details" : "Record your latest expense"}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex gap-3 pt-4">
-            <Button variant="outline" onClick={() => setIsExpensesDeleteDialogOpen(false)} className="flex-1">
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteExpense} className="flex-1">
-              Delete
-            </Button>
+          
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <Label htmlFor="expense-amount" className="text-sm font-medium">Amount (£)</Label>
+                <Input
+                  id="expense-amount"
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={expenseForm.amount}
+                  onChange={(e) => setExpenseForm({...expenseForm, amount: e.target.value})}
+                  className="rounded-xl h-12 text-base"
+                />
+              </div>
+              <div className="space-y-3">
+                <Label htmlFor="category" className="text-sm font-medium">Category</Label>
+                <Select value={expenseForm.category} onValueChange={(value) => setExpenseForm({...expenseForm, category: value})}>
+                  <SelectTrigger className="rounded-xl h-12">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Fuel">Fuel</SelectItem>
+                    <SelectItem value="Maintenance">Maintenance</SelectItem>
+                    <SelectItem value="Insurance">Insurance</SelectItem>
+                    <SelectItem value="Mileage">Mileage</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="description" className="text-sm font-medium">Description</Label>
+              <Input
+                id="description"
+                placeholder="Brief description"
+                value={expenseForm.description}
+                onChange={(e) => setExpenseForm({...expenseForm, description: e.target.value})}
+                className="rounded-xl h-12 text-base"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Expense Type</Label>
+              <Select value={expenseForm.type} onValueChange={(value: "manual" | "mileage") => setExpenseForm({...expenseForm, type: value})}>
+                <SelectTrigger className="rounded-xl h-12">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="manual">Manual Entry</SelectItem>
+                  <SelectItem value="mileage">Mileage Based</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {expenseForm.type === "mileage" && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <Label htmlFor="miles" className="text-sm font-medium">Miles</Label>
+                  <Input
+                    id="miles"
+                    type="number"
+                    step="0.1"
+                    placeholder="0.0"
+                    value={expenseForm.miles}
+                    onChange={(e) => setExpenseForm({...expenseForm, miles: e.target.value})}
+                    className="rounded-xl h-12 text-base"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <Label htmlFor="cost-per-mile" className="text-sm font-medium">Cost per Mile (£)</Label>
+                  <Input
+                    id="cost-per-mile"
+                    type="number"
+                    step="0.01"
+                    value={expenseForm.costPerMile}
+                    onChange={(e) => setExpenseForm({...expenseForm, costPerMile: e.target.value})}
+                    className="rounded-xl h-12 text-base"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-4">
+              <Button 
+                variant="outline" 
+                onClick={resetExpenseForm}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleAddExpense}
+                className="flex-1"
+              >
+                {editingExpense ? "Update" : "Add"} Expense
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
