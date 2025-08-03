@@ -24,7 +24,7 @@ class DataStore {
   private earnings: Earning[] = [
     {
       id: "1",
-      amount: 145.5,
+      amount: 115.5,
       platform: "Uber",
       trips: 8,
       hours: 6.5,
@@ -32,7 +32,7 @@ class DataStore {
     },
     {
       id: "2",
-      amount: 123.75,
+      amount: 98.75,
       platform: "Bolt",
       trips: 6,
       hours: 5.0,
@@ -40,7 +40,7 @@ class DataStore {
     },
     {
       id: "3",
-      amount: 167.25,
+      amount: 133.25,
       platform: "Uber",
       trips: 10,
       hours: 7.5,
@@ -48,7 +48,7 @@ class DataStore {
     },
     {
       id: "4",
-      amount: 89.0,
+      amount: 71.0,
       platform: "Bolt",
       trips: 5,
       hours: 4.0,
@@ -56,7 +56,7 @@ class DataStore {
     },
     {
       id: "5",
-      amount: 200.0,
+      amount: 160.0,
       platform: "Lyft",
       trips: 12,
       hours: 8.0,

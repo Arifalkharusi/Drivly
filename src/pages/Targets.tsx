@@ -271,10 +271,10 @@ const Targets = () => {
                       
                       <div className="flex items-baseline justify-between mb-3">
                         <div>
-                          <span className="text-2xl font-bold text-foreground">${target.current.toFixed(2)}</span>
+                          <span className="text-2xl font-bold text-foreground">£{target.current.toFixed(2)}</span>
                         </div>
                         <div className="text-right">
-                          <span className="text-base text-muted-foreground">of ${target.amount.toFixed(2)}</span>
+                          <span className="text-base text-muted-foreground">of £{target.amount.toFixed(2)}</span>
                         </div>
                       </div>
 
