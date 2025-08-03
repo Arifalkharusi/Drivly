@@ -22,6 +22,7 @@ import {
   ChevronDown,
   Loader2,
   CalendarDays,
+  Activity,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
