@@ -402,7 +402,7 @@ const Earnings = () => {
             <div className="text-center">
               <p className="text-white/80 text-xs sm:text-sm">Total</p>
               <p className="text-lg sm:text-xl font-bold text-white">
-                ${totalEarnings.toFixed(2)}
+                £{totalEarnings.toFixed(2)}
               </p>
             </div>
             <div className="text-center">

@@ -86,15 +86,15 @@ const Dashboard = () => {
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
             <div className="text-center">
               <p className="text-white/60 text-xs mb-1">Earnings</p>
-              <p className="text-sm sm:text-lg font-semibold text-white">${weeklyProgress.toFixed(2)}</p>
+              <p className="text-sm sm:text-lg font-semibold text-white">£{weeklyProgress.toFixed(2)}</p>
             </div>
             <div className="text-center">
               <p className="text-white/60 text-xs mb-1">Avg/Day</p>
-              <p className="text-sm sm:text-lg font-semibold text-white">${(weeklyProgress / 7).toFixed(2)}</p>
+              <p className="text-sm sm:text-lg font-semibold text-white">£{(weeklyProgress / 7).toFixed(2)}</p>
             </div>
             <div className="text-center">
               <p className="text-white/60 text-xs mb-1">Per Hour</p>
-              <p className="text-sm sm:text-lg font-semibold text-white">${weeklyHourlyRate.toFixed(2)}/h</p>
+              <p className="text-sm sm:text-lg font-semibold text-white">£{weeklyHourlyRate.toFixed(2)}/h</p>
             </div>
           </div>
         </GradientCard>
@@ -112,11 +112,11 @@ const Dashboard = () => {
             <div className="space-y-2">
               <div className="flex justify-between text-xs sm:text-sm">
                 <span className="text-muted-foreground">Progress</span>
-                <span className="font-medium">${weeklyProgress} / ${weeklyTarget}</span>
+                <span className="font-medium">£{weeklyProgress} / £{weeklyTarget}</span>
               </div>
               <Progress value={progressPercentage} className="h-2.5 sm:h-3" />
               <p className="text-xs sm:text-sm text-muted-foreground">
-                {progressPercentage.toFixed(1)}% complete • ${weeklyTarget - weeklyProgress} to go
+                {progressPercentage.toFixed(1)}% complete • £{weeklyTarget - weeklyProgress} to go
               </p>
             </div>
           </div>
@@ -247,7 +247,7 @@ const Dashboard = () => {
                 <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-success" />
                 <span className="text-xs sm:text-sm font-medium">This Week</span>
               </div>
-              <p className="text-xl sm:text-2xl font-bold">${weeklyProgress}</p>
+              <p className="text-xl sm:text-2xl font-bold">£{weeklyProgress}</p>
               <p className="text-xs sm:text-sm text-muted-foreground">+12% vs last week</p>
             </div>
           </GradientCard>
@@ -258,7 +258,7 @@ const Dashboard = () => {
                 <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5 text-warning" />
                 <span className="text-xs sm:text-sm font-medium">Expenses</span>
               </div>
-              <p className="text-xl sm:text-2xl font-bold">${weeklyExpenses.toFixed(2)}</p>
+              <p className="text-xl sm:text-2xl font-bold">£{weeklyExpenses.toFixed(2)}</p>
               <p className="text-xs sm:text-sm text-muted-foreground">-8% vs last week</p>
             </div>
           </GradientCard>
@@ -301,7 +301,7 @@ const Dashboard = () => {
                       />
                       <span className="text-xs sm:text-sm">{item.name}</span>
                     </div>
-                    <span className="text-xs sm:text-sm font-medium">${item.value}</span>
+                    <span className="text-xs sm:text-sm font-medium">£{item.value}</span>
                   </div>
                 ))}
               </div>
