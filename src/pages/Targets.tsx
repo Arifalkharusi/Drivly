@@ -513,6 +513,30 @@ const Targets = () => {
                 placeholder="0.00"
                 value={editAmount}
                 onChange={(e) => setEditAmount(e.target.value)}
+                className="rounded-xl"
+              />
+            </div>
+            
+            <div className="flex gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setIsEditDialogOpen(false)}
+                className="flex-1 rounded-xl"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveTarget}
+                className="flex-1 rounded-xl"
+                disabled={!editAmount || parseFloat(editAmount) <= 0}
+              >
+                Save Target
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <MobileNavigation />
     </div>
   );
