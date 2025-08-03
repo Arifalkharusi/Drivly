@@ -138,6 +138,15 @@ const Finance = () => {
   const totalEarnings = filteredEarnings.reduce((sum, earning) => sum + earning.amount, 0);
   const totalExpenses = filteredExpenses.reduce((sum, expense) => sum + expense.amount, 0);
 
+  // Group earnings by platform
+  const groupedEarnings = platformFilteredEarnings.reduce((acc, earning) => {
+    if (!acc[earning.platform]) {
+      acc[earning.platform] = [];
+    }
+    acc[earning.platform].push(earning);
+    return acc;
+  }, {} as Record<string, Earning[]>);
+
   // Earnings functions
   const handleSaveEarning = () => {
     if (!earningsFormData.amount || !earningsFormData.platform || !earningsFormData.trips || !earningsFormData.hours) {
@@ -483,231 +492,242 @@ const Finance = () => {
                         Add Earning
                       </Button>
                     </DialogTrigger>
-                <DialogContent className="rounded-2xl max-w-md max-h-[90vh] overflow-y-auto">
-                  <DialogHeader className="pb-4">
-                    <DialogTitle className="text-lg sm:text-xl">
-                      {editingEarning ? "Edit Earning" : "Add New Earning"}
-                    </DialogTitle>
-                    <DialogDescription className="text-sm sm:text-base">
-                      {editingEarning ? "Update earning details" : "Record earnings for a shift"}
-                    </DialogDescription>
-                  </DialogHeader>
+                    <DialogContent className="rounded-2xl max-w-md max-h-[90vh] overflow-y-auto">
+                      <DialogHeader className="pb-4">
+                        <DialogTitle className="text-lg sm:text-xl">
+                          {editingEarning ? "Edit Earning" : "Add New Earning"}
+                        </DialogTitle>
+                        <DialogDescription className="text-sm sm:text-base">
+                          {editingEarning ? "Update earning details" : "Record earnings for a shift"}
+                        </DialogDescription>
+                      </DialogHeader>
 
-                  <div className="space-y-6">
-                    <div className="space-y-3">
-                      <Label htmlFor="platform" className="text-sm font-medium">Platform</Label>
-                      <Select
-                        value={earningsFormData.platform}
-                        onValueChange={(value) => setEarningsFormData({ ...earningsFormData, platform: value })}
-                      >
-                        <SelectTrigger className="rounded-xl h-12 text-base">
-                          <SelectValue placeholder="Select platform" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-background border shadow-lg max-h-60">
-                          {allPlatforms.map((platform) => (
-                            <SelectItem key={platform} value={platform} className="text-base py-3">
-                              {platform}
-                            </SelectItem>
-                          ))}
-                          <SelectItem value="custom" className="text-base py-3">Add Custom Platform</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                      <div className="space-y-6">
+                        <div className="space-y-3">
+                          <Label htmlFor="platform" className="text-sm font-medium">Platform</Label>
+                          <Select
+                            value={earningsFormData.platform}
+                            onValueChange={(value) => setEarningsFormData({ ...earningsFormData, platform: value })}
+                          >
+                            <SelectTrigger className="rounded-xl h-12 text-base">
+                              <SelectValue placeholder="Select platform" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-background border shadow-lg max-h-60">
+                              {allPlatforms.map((platform) => (
+                                <SelectItem key={platform} value={platform} className="text-base py-3">
+                                  {platform}
+                                </SelectItem>
+                              ))}
+                              <SelectItem value="custom" className="text-base py-3">Add Custom Platform</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
 
-                    {earningsFormData.platform === "custom" && (
-                      <div className="space-y-3">
-                        <Label htmlFor="customPlatform" className="text-sm font-medium">Custom Platform Name</Label>
-                        <Input
-                          id="customPlatform"
-                          value={earningsFormData.customPlatform}
-                          onChange={(e) => setEarningsFormData({ ...earningsFormData, customPlatform: e.target.value })}
-                          placeholder="e.g., Local Taxi Company"
-                          className="rounded-xl h-12 text-base"
-                        />
-                      </div>
-                    )}
-
-                    <div className="space-y-3">
-                      <Label htmlFor="amount" className="text-sm font-medium">Total Earning (£)</Label>
-                      <Input
-                        id="amount"
-                        type="number"
-                        step="0.01"
-                        value={earningsFormData.amount}
-                        onChange={(e) => setEarningsFormData({ ...earningsFormData, amount: e.target.value })}
-                        placeholder="0.00"
-                        className="rounded-xl h-12 text-base"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                      <div className="space-y-3">
-                        <Label htmlFor="trips" className="text-sm font-medium">Number of Trips</Label>
-                        <Input
-                          id="trips"
-                          type="number"
-                          value={earningsFormData.trips}
-                          onChange={(e) => setEarningsFormData({ ...earningsFormData, trips: e.target.value })}
-                          placeholder="0"
-                          className="rounded-xl h-12 text-base"
-                        />
-                      </div>
-                      <div className="space-y-3">
-                        <Label htmlFor="hours" className="text-sm font-medium">Hours Worked</Label>
-                        <Input
-                          id="hours"
-                          type="number"
-                          step="0.5"
-                          value={earningsFormData.hours}
-                          onChange={(e) => setEarningsFormData({ ...earningsFormData, hours: e.target.value })}
-                          placeholder="0.0"
-                          className="rounded-xl h-12 text-base"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <Label htmlFor="date" className="text-sm font-medium">Date</Label>
-                      <Input
-                        id="date"
-                        type="date"
-                        value={earningsFormData.date}
-                        onChange={(e) => setEarningsFormData({ ...earningsFormData, date: e.target.value })}
-                        className="rounded-xl h-12 text-base"
-                      />
-                    </div>
-
-                    <Button
-                      onClick={handleSaveEarning}
-                      variant="default"
-                      className="w-full rounded-xl h-12 text-base font-medium mt-6"
-                    >
-                      {editingEarning ? "Update Earning" : "Add Earning"}
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            {platformFilteredEarnings.length === 0 ? (
-              <GradientCard className="text-center py-8">
-                <Car className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-semibold mb-2 text-primary">
-                  {selectedPlatform === "all" ? "No earnings yet" : `No earnings for ${selectedPlatform}`}
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  {selectedPlatform === "all" 
-                    ? "Start tracking your platform earnings" 
-                    : `No earnings found for ${selectedPlatform} in the selected date range`
-                  }
-                </p>
-              </GradientCard>
-            ) : (
-              <div className="space-y-4">
-                {platformFilteredEarnings.map((earning) => (
-                  <GradientCard key={earning.id} className="hover:shadow-soft transition-shadow p-4 sm:p-6">
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${
-                            earning.platform === "Uber" ? "bg-gradient-to-br from-black to-gray-800 text-white" :
-                            earning.platform === "Bolt" ? "bg-gradient-to-br from-green-500 to-green-600 text-white" :
-                            earning.platform === "Lyft" ? "bg-gradient-to-br from-pink-500 to-pink-600 text-white" :
-                            "bg-gradient-to-br from-primary to-primary/80 text-white"
-                          }`}>
-                            {getPlatformIcon(earning.platform)}
+                        {earningsFormData.platform === "custom" && (
+                          <div className="space-y-3">
+                            <Label htmlFor="customPlatform" className="text-sm font-medium">Custom Platform Name</Label>
+                            <Input
+                              id="customPlatform"
+                              value={earningsFormData.customPlatform}
+                              onChange={(e) => setEarningsFormData({ ...earningsFormData, customPlatform: e.target.value })}
+                              placeholder="e.g., Local Taxi Company"
+                              className="rounded-xl h-12 text-base"
+                            />
                           </div>
-                          <div>
-                            <h3 className="font-bold text-base text-primary">{earning.platform}</h3>
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
-                              <CalendarIcon className="w-3 h-3" />
-                              {new Date(earning.date).toLocaleDateString()}
-                            </p>
+                        )}
+
+                        <div className="space-y-3">
+                          <Label htmlFor="amount" className="text-sm font-medium">Total Earning (£)</Label>
+                          <Input
+                            id="amount"
+                            type="number"
+                            step="0.01"
+                            value={earningsFormData.amount}
+                            onChange={(e) => setEarningsFormData({ ...earningsFormData, amount: e.target.value })}
+                            placeholder="0.00"
+                            className="rounded-xl h-12 text-base"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                          <div className="space-y-3">
+                            <Label htmlFor="trips" className="text-sm font-medium">Number of Trips</Label>
+                            <Input
+                              id="trips"
+                              type="number"
+                              value={earningsFormData.trips}
+                              onChange={(e) => setEarningsFormData({ ...earningsFormData, trips: e.target.value })}
+                              placeholder="0"
+                              className="rounded-xl h-12 text-base"
+                            />
+                          </div>
+                          <div className="space-y-3">
+                            <Label htmlFor="hours" className="text-sm font-medium">Hours Worked</Label>
+                            <Input
+                              id="hours"
+                              type="number"
+                              step="0.5"
+                              value={earningsFormData.hours}
+                              onChange={(e) => setEarningsFormData({ ...earningsFormData, hours: e.target.value })}
+                              placeholder="0.0"
+                              className="rounded-xl h-12 text-base"
+                            />
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openEarningsEditDialog(earning)}
-                            className="h-10 w-10 p-0 hover:bg-muted/50 rounded-xl"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setEarningToDelete(earning.id);
-                              setIsEarningsDeleteDialogOpen(true);
-                            }}
-                            className="h-10 w-10 p-0 text-muted-foreground hover:text-destructive rounded-xl"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                        <div className="space-y-3">
+                          <Label htmlFor="date" className="text-sm font-medium">Date</Label>
+                          <Input
+                            id="date"
+                            type="date"
+                            value={earningsFormData.date}
+                            onChange={(e) => setEarningsFormData({ ...earningsFormData, date: e.target.value })}
+                            className="rounded-xl h-12 text-base"
+                          />
                         </div>
-                      </div>
 
-                      <div className="bg-muted/20 rounded-2xl p-4">
-                        <div className="flex items-baseline justify-between mb-2">
-                          <span className="text-2xl font-bold text-success">£{earning.amount.toFixed(2)}</span>
-                          <div className="text-right">
-                            <div className="flex items-center gap-1 text-xs text-success">
-                              <TrendingUp className="w-3 h-3" />
-                              £{(earning.amount / earning.hours).toFixed(2)}/hr
+                        <Button
+                          onClick={handleSaveEarning}
+                          variant="default"
+                          className="w-full rounded-xl h-12 text-base font-medium mt-6"
+                        >
+                          {editingEarning ? "Update Earning" : "Add Earning"}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+
+              {filteredEarnings.length === 0 ? (
+                <GradientCard className="text-center py-8">
+                  <Car className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="font-semibold mb-2 text-primary">No earnings yet</h3>
+                  <p className="text-muted-foreground mb-4">Start tracking your platform earnings</p>
+                </GradientCard>
+              ) : (
+                <div className="space-y-6">
+                  {Object.entries(groupedEarnings).map(([platform, platformEarnings]) => {
+                    const platformTotal = platformEarnings.reduce((sum, earning) => sum + earning.amount, 0);
+                    const totalTrips = platformEarnings.reduce((sum, earning) => sum + earning.trips, 0);
+                    const totalHours = platformEarnings.reduce((sum, earning) => sum + earning.hours, 0);
+
+                    return (
+                      <div key={platform} className="space-y-2 sm:space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                          <div className="flex items-center gap-2 sm:gap-3">
+                            <Badge className={getPlatformColor(platform)}>{platform}</Badge>
+                            <span className="text-xs sm:text-sm text-muted-foreground">
+                              £{platformTotal.toFixed(2)} total
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3 sm:gap-4 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Car className="w-3 h-3" />
+                              {totalTrips} trips
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {totalHours.toFixed(1)}h
                             </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-success/5 border border-success/10 rounded-xl p-3 text-center">
-                          <div className="text-xs text-muted-foreground mb-1">Trips</div>
-                          <div className="font-bold text-base text-success">{earning.trips}</div>
-                        </div>
-                        <div className="bg-accent/5 border border-accent/10 rounded-xl p-3 text-center">
-                          <div className="text-xs text-muted-foreground mb-1">Hours</div>
-                          <div className="font-bold text-base text-accent">{earning.hours}h</div>
-                        </div>
-                        <div className="bg-primary/5 border border-primary/10 rounded-xl p-3 text-center">
-                          <div className="text-xs text-muted-foreground mb-1">Per Trip</div>
-                          <div className="font-bold text-base text-primary">£{(earning.amount / earning.trips).toFixed(2)}</div>
+                        <div className="space-y-4">
+                          {platformEarnings.map((earning) => (
+                            <GradientCard key={earning.id} className="hover:shadow-soft transition-shadow p-4 sm:p-6">
+                              <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${
+                                      platform === "Uber" ? "bg-gradient-to-br from-black to-gray-800 text-white" :
+                                      platform === "Bolt" ? "bg-gradient-to-br from-green-500 to-green-600 text-white" :
+                                      platform === "Lyft" ? "bg-gradient-to-br from-pink-500 to-pink-600 text-white" :
+                                      "bg-gradient-to-br from-primary to-primary/80 text-white"
+                                    }`}>
+                                      {getPlatformIcon(platform)}
+                                    </div>
+                                    <div>
+                                      <h3 className="font-bold text-base text-primary">{platform}</h3>
+                                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                        <CalendarIcon className="w-3 h-3" />
+                                        {new Date(earning.date).toLocaleDateString()}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => openEarningsEditDialog(earning)}
+                                      className="h-10 w-10 p-0 hover:bg-muted/50 rounded-xl"
+                                    >
+                                      <Edit3 className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        setEarningToDelete(earning.id);
+                                        setIsEarningsDeleteDialogOpen(true);
+                                      }}
+                                      className="h-10 w-10 p-0 text-muted-foreground hover:text-destructive rounded-xl"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+
+                                <div className="bg-muted/20 rounded-2xl p-4">
+                                  <div className="flex items-baseline justify-between mb-2">
+                                    <span className="text-2xl font-bold text-success">£{earning.amount.toFixed(2)}</span>
+                                    <div className="text-right">
+                                      <div className="flex items-center gap-1 text-xs text-success">
+                                        <TrendingUp className="w-3 h-3" />
+                                        £{(earning.amount / earning.hours).toFixed(2)}/hr
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-3">
+                                  <div className="bg-success/5 border border-success/10 rounded-xl p-3 text-center">
+                                    <div className="text-xs text-muted-foreground mb-1">Trips</div>
+                                    <div className="font-bold text-base text-success">{earning.trips}</div>
+                                  </div>
+                                  <div className="bg-accent/5 border border-accent/10 rounded-xl p-3 text-center">
+                                    <div className="text-xs text-muted-foreground mb-1">Hours</div>
+                                    <div className="font-bold text-base text-accent">{earning.hours}h</div>
+                                  </div>
+                                  <div className="bg-primary/5 border border-primary/10 rounded-xl p-3 text-center">
+                                    <div className="text-xs text-muted-foreground mb-1">Per Trip</div>
+                                    <div className="font-bold text-base text-primary">£{(earning.amount / earning.trips).toFixed(2)}</div>
+                                  </div>
+                                </div>
+                              </div>
+                            </GradientCard>
+                          ))}
                         </div>
                       </div>
-                    </div>
-                  </GradientCard>
-                ))}
-              </div>
-            )}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </TabsContent>
 
           {/* Expenses Tab */}
           <TabsContent value="expenses" className="space-y-4">
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                <h3 className="font-semibold text-lg text-primary">Your Expenses</h3>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="w-full sm:w-40">
-                      <SelectValue placeholder="All Categories" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      {availableCategories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Dialog open={isExpensesDialogOpen} onOpenChange={setIsExpensesDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button onClick={() => openExpensesEditDialog()}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Expense
-                      </Button>
-                    </DialogTrigger>
+            <div className="flex justify-between items-center">
+              <h3 className="font-semibold text-lg text-primary">Your Expenses</h3>
+              <Dialog open={isExpensesDialogOpen} onOpenChange={setIsExpensesDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button onClick={() => openExpensesEditDialog()}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Expense
+                  </Button>
+                </DialogTrigger>
                 <DialogContent className="rounded-2xl max-w-md max-h-[90vh] overflow-y-auto">
                   <DialogHeader className="pb-4">
                     <DialogTitle className="text-lg sm:text-xl">
@@ -895,22 +915,15 @@ const Finance = () => {
               </Dialog>
             </div>
 
-            {categoryFilteredExpenses.length === 0 ? (
+            {filteredExpenses.length === 0 ? (
               <GradientCard className="text-center py-8">
                 <Receipt className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-semibold mb-2 text-primary">
-                  {selectedCategory === "all" ? "No expenses recorded" : `No ${selectedCategory.toLowerCase()} expenses`}
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  {selectedCategory === "all" 
-                    ? "Start tracking your business expenses" 
-                    : `No ${selectedCategory.toLowerCase()} expenses found in the selected date range`
-                  }
-                </p>
+                <h3 className="font-semibold mb-2 text-primary">No expenses recorded</h3>
+                <p className="text-muted-foreground mb-4">Start tracking your business expenses</p>
               </GradientCard>
             ) : (
               <div className="space-y-4">
-                {categoryFilteredExpenses.map((expense) => (
+                {filteredExpenses.map((expense) => (
                   <GradientCard key={expense.id} className="hover:shadow-elegant transition-all duration-300 p-4 sm:p-6">
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
