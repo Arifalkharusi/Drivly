@@ -38,6 +38,7 @@ import {
   Trash2,
   Edit3,
 } from "lucide-react";
+import { PoundSterling } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
@@ -469,7 +470,7 @@ const Expenses = () => {
                     {newExpense.miles && newExpense.costPerMile && (
                       <div className="bg-accent p-4 rounded-xl">
                         <div className="flex items-center gap-2 mb-2">
-                          <Calculator className="w-4 h-4 text-primary" />
+                          <PoundSterling className="w-4 h-4 text-primary" />
                           <span className="text-sm font-medium">
                             Calculated Amount
                           </span>
