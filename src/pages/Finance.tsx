@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import GradientCard from "@/components/GradientCard";
 import MobileNavigation from "@/components/MobileNavigation";
 import { 
@@ -22,7 +23,9 @@ import {
   Receipt,
   Calendar,
   Clock,
-  Activity
+  Activity,
+  Filter,
+  Search
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Earning, Expense } from "@/lib/dataStore";
@@ -48,6 +51,21 @@ const Finance = () => {
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [editingEarning, setEditingEarning] = useState<Earning | null>(null);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  
+  // Filter states
+  const [earningsFilter, setEarningsFilter] = useState({
+    platform: "",
+    dateFrom: "",
+    dateTo: "",
+    search: "",
+  });
+  
+  const [expensesFilter, setExpensesFilter] = useState({
+    category: "",
+    dateFrom: "",
+    dateTo: "",
+    search: "",
+  });
 
   const [earningForm, setEarningForm] = useState({
     amount: "",
@@ -70,6 +88,32 @@ const Finance = () => {
   const netIncome = weeklyEarnings - weeklyExpenses;
   const todayNet = todayEarnings - todayExpenses;
 
+  // Filter functions
+  const filteredEarnings = earnings.filter(earning => {
+    const matchesPlatform = !earningsFilter.platform || earning.platform === earningsFilter.platform;
+    const matchesDateFrom = !earningsFilter.dateFrom || earning.date >= earningsFilter.dateFrom;
+    const matchesDateTo = !earningsFilter.dateTo || earning.date <= earningsFilter.dateTo;
+    const matchesSearch = !earningsFilter.search || 
+      earning.platform.toLowerCase().includes(earningsFilter.search.toLowerCase());
+    
+    return matchesPlatform && matchesDateFrom && matchesDateTo && matchesSearch;
+  });
+
+  const filteredExpenses = expenses.filter(expense => {
+    const matchesCategory = !expensesFilter.category || expense.category === expensesFilter.category;
+    const expenseDate = expense.date.toISOString().split('T')[0];
+    const matchesDateFrom = !expensesFilter.dateFrom || expenseDate >= expensesFilter.dateFrom;
+    const matchesDateTo = !expensesFilter.dateTo || expenseDate <= expensesFilter.dateTo;
+    const matchesSearch = !expensesFilter.search || 
+      expense.category.toLowerCase().includes(expensesFilter.search.toLowerCase()) ||
+      expense.description.toLowerCase().includes(expensesFilter.search.toLowerCase());
+    
+    return matchesCategory && matchesDateFrom && matchesDateTo && matchesSearch;
+  });
+
+  // Get unique platforms and categories for filter dropdowns
+  const uniquePlatforms = [...new Set(earnings.map(e => e.platform))];
+  const uniqueCategories = [...new Set(expenses.map(e => e.category))];
   const handleAddEarning = () => {
     if (!earningForm.amount || !earningForm.platform) {
       toast({
@@ -357,18 +401,100 @@ const Finance = () => {
           </TabsList>
 
           <TabsContent value="earnings" className="space-y-3 sm:space-y-4">
-            {earnings.length === 0 ? (
+            {/* Earnings Filters */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Filter className="w-4 h-4" />
+                  Filter Earnings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="search-earnings">Search</Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="search-earnings"
+                        placeholder="Search platform..."
+                        value={earningsFilter.search}
+                        onChange={(e) => setEarningsFilter({...earningsFilter, search: e.target.value})}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Platform</Label>
+                    <Select 
+                      value={earningsFilter.platform} 
+                      onValueChange={(value) => setEarningsFilter({...earningsFilter, platform: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All platforms" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All platforms</SelectItem>
+                        {uniquePlatforms.map(platform => (
+                          <SelectItem key={platform} value={platform}>{platform}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="date-from-earnings">From Date</Label>
+                    <Input
+                      id="date-from-earnings"
+                      type="date"
+                      value={earningsFilter.dateFrom}
+                      onChange={(e) => setEarningsFilter({...earningsFilter, dateFrom: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="date-to-earnings">To Date</Label>
+                    <Input
+                      id="date-to-earnings"
+                      type="date"
+                      value={earningsFilter.dateTo}
+                      onChange={(e) => setEarningsFilter({...earningsFilter, dateTo: e.target.value})}
+                    />
+                  </div>
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={() => setEarningsFilter({ platform: "", dateFrom: "", dateTo: "", search: "" })}
+                  className="w-full sm:w-auto"
+                >
+                  Clear Filters
+                </Button>
+              </CardContent>
+            </Card>
+
+            {filteredEarnings.length === 0 ? (
               <GradientCard className="text-center py-8">
                 <TrendingUp className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-semibold mb-2 text-primary">No earnings yet</h3>
-                <p className="text-muted-foreground mb-4">Start tracking your earnings to see them here</p>
+                <h3 className="font-semibold mb-2 text-primary">
+                  {earnings.length === 0 ? "No earnings yet" : "No earnings match your filters"}
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  {earnings.length === 0 
+                    ? "Start tracking your earnings to see them here" 
+                    : "Try adjusting your filter criteria"
+                  }
+                </p>
+                {earnings.length === 0 && (
                 <Button onClick={() => setIsEarningDialogOpen(true)}>
                   <Plus className="w-4 h-4 mr-2" />
                   Add First Earning
                 </Button>
+                )}
               </GradientCard>
             ) : (
-              earnings.map((earning) => (
+              filteredEarnings.map((earning) => (
                 <GradientCard key={earning.id} className="hover:shadow-soft transition-shadow">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
@@ -432,18 +558,100 @@ const Finance = () => {
           </TabsContent>
 
           <TabsContent value="expenses" className="space-y-3 sm:space-y-4">
-            {expenses.length === 0 ? (
+            {/* Expenses Filters */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Filter className="w-4 h-4" />
+                  Filter Expenses
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="search-expenses">Search</Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="search-expenses"
+                        placeholder="Search category or description..."
+                        value={expensesFilter.search}
+                        onChange={(e) => setExpensesFilter({...expensesFilter, search: e.target.value})}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Category</Label>
+                    <Select 
+                      value={expensesFilter.category} 
+                      onValueChange={(value) => setExpensesFilter({...expensesFilter, category: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="All categories" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">All categories</SelectItem>
+                        {uniqueCategories.map(category => (
+                          <SelectItem key={category} value={category}>{category}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="date-from-expenses">From Date</Label>
+                    <Input
+                      id="date-from-expenses"
+                      type="date"
+                      value={expensesFilter.dateFrom}
+                      onChange={(e) => setExpensesFilter({...expensesFilter, dateFrom: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="date-to-expenses">To Date</Label>
+                    <Input
+                      id="date-to-expenses"
+                      type="date"
+                      value={expensesFilter.dateTo}
+                      onChange={(e) => setExpensesFilter({...expensesFilter, dateTo: e.target.value})}
+                    />
+                  </div>
+                </div>
+                
+                <Button 
+                  variant="outline" 
+                  onClick={() => setExpensesFilter({ category: "", dateFrom: "", dateTo: "", search: "" })}
+                  className="w-full sm:w-auto"
+                >
+                  Clear Filters
+                </Button>
+              </CardContent>
+            </Card>
+
+            {filteredExpenses.length === 0 ? (
               <GradientCard className="text-center py-8">
                 <TrendingDown className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="font-semibold mb-2 text-primary">No expenses yet</h3>
-                <p className="text-muted-foreground mb-4">Start tracking your expenses to see them here</p>
+                <h3 className="font-semibold mb-2 text-primary">
+                  {expenses.length === 0 ? "No expenses yet" : "No expenses match your filters"}
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  {expenses.length === 0 
+                    ? "Start tracking your expenses to see them here" 
+                    : "Try adjusting your filter criteria"
+                  }
+                </p>
+                {expenses.length === 0 && (
                 <Button onClick={() => setIsExpenseDialogOpen(true)}>
                   <Plus className="w-4 h-4 mr-2" />
                   Add First Expense
                 </Button>
+                )}
               </GradientCard>
             ) : (
-              expenses.map((expense) => (
+              filteredExpenses.map((expense) => (
                 <GradientCard key={expense.id} className="hover:shadow-soft transition-shadow">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
